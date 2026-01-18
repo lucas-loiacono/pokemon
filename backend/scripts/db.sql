@@ -100,7 +100,7 @@ CREATE TABLE jugador_frutas (
 
 
 
-🟢 HÁBITATS DEL JUGADOR (SLOTS)
+// HÁBITATS DEL JUGADOR (SLOTS)
 CREATE TABLE jugador_habitats (
   id SERIAL PRIMARY KEY,
   jugador_id INT NOT NULL REFERENCES jugadores(id) ON DELETE CASCADE,
@@ -109,14 +109,14 @@ CREATE TABLE jugador_habitats (
   creado_en TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-🟢 POKÉMON DENTRO DE CADA HÁBITAT DEL JUGADOR
+// POKÉMON DENTRO DE CADA HÁBITAT DEL JUGADOR
 CREATE TABLE jugador_habitat_pokemons (
   jugador_habitat_id INT NOT NULL REFERENCES jugador_habitats(id) ON DELETE CASCADE,
   jugador_pokemon_id INT NOT NULL REFERENCES jugador_pokemons(id) ON DELETE CASCADE,
   PRIMARY KEY (jugador_habitat_id, jugador_pokemon_id)
 );
 
-🟢 ZONAS DE CAPTURA
+// ZONAS DE CAPTURA
 CREATE TABLE zonas_captura (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(30) UNIQUE NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE zonas_captura (
   imagen VARCHAR(255)
 );
 
-🟢 POKÉMON RANDOM POR ZONA
+// POKÉMON RANDOM POR ZONA
 CREATE TABLE zona_pokemons (
   zona_id INT NOT NULL REFERENCES zonas_captura(id) ON DELETE CASCADE,
   pokemon_id INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
@@ -132,7 +132,7 @@ CREATE TABLE zona_pokemons (
   PRIMARY KEY (zona_id, pokemon_id)
 );
 
-🟢 GRANJAS DEL JUGADOR (RECOLECTAR FRUTAS)
+// GRANJAS DEL JUGADOR (RECOLECTAR FRUTAS)
 CREATE TABLE granjas (
   id SERIAL PRIMARY KEY,
   jugador_id INT NOT NULL REFERENCES jugadores(id) ON DELETE CASCADE,
@@ -140,7 +140,7 @@ CREATE TABLE granjas (
   ultimo_cobro TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-🟢 EVOLUCIONES (POR NIVEL)
+// EVOLUCIONES (POR NIVEL)
 CREATE TABLE evoluciones (
   id SERIAL PRIMARY KEY,
   pokemon_id INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
@@ -150,7 +150,7 @@ CREATE TABLE evoluciones (
   UNIQUE (pokemon_id, etapa_actual)
 );
 
-🟢 DESBLOQUEO DE SLOTS POR NIVEL DEL JUGADOR
+// DESBLOQUEO DE SLOTS POR NIVEL DEL JUGADOR
 CREATE TABLE desbloqueos (
   nivel INT PRIMARY KEY,
   habitats_slots INT NOT NULL DEFAULT 1 CHECK (habitats_slots >= 0),
