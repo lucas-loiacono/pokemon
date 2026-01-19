@@ -202,10 +202,8 @@ INSERT INTO zonas_captura (nombre, descripcion, imagen, nivel_requerido) VALUES
   12
 );
 
--- 🟣 NIVEL 16 (opcional, si después la querés)
--- ('Dragón / Legendario', 'Zona ancestral...', 'url.png', 16);
 
-);
+
 
 INSERT INTO entrenadores (nombre, descripcion, edad, imagen) VALUES
 
@@ -397,8 +395,8 @@ INSERT INTO desbloqueos (nivel, habitats_slots, granjas_slots) VALUES
 (7, 4, 2),
 (10, 5, 3),
 (13, 6, 3),
-(16, 5, 4),
-(20, 5, 4),
-(24, 6, 5),
-(28, 7, 5),
-(30, 8, 6);
+(16, 7, 4),
+(20, 8, 4),
+(24, 9, 5),
+(28, 10, 5),
+(30, 11, 6);
