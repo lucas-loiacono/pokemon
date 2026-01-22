@@ -72,3 +72,4 @@ app.delete('/api/pokemons/:id', async (req, res) => {
 
 //update pokemon
 
+//terminar update y hacer verificacion de campos obligatorios
