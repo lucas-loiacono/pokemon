@@ -9,6 +9,8 @@ const PORT = process.env.PORT || 3000;
 const{
     getAllPokemons,
     getOnePokemon,
+    createPokemon,
+    deletePokemon
 
 } = require('./scripts/pokemons');
 
@@ -41,22 +43,32 @@ app.get('/api/pokemons/:id', async (req, res) => {
 });
 
 //insert new pokemon 
-app.post('/api/pokemons', (req, res) => {
-  const newPokemon = req.body;
-})
+app.post('/api/pokemons'), async (req, res) => {
+    
+    
+    if (!req.body.nombre || !req.body.descripcion || !req.body.imagen_url) {                
+        return res.status(400).json({ error: 'Missing required fields' });
+  }
 
-//delete pokemon
-app.delete('/api/pokemons/:id', (req, res) => {
-  const { id } = req.params;
-  // Logic to delete pokemon by id
-  res.json({ message: `Pokemon with id ${id} deleted` });
+
+    const newPokemon = await createPokemon(req.body.nombre , req.body.descripcion, req.body.imagen_url);
+
+    if (!newPokemon) {
+        return res.status(500).json({ error: 'Failed to create pokemon' });
+    }
+    res.json(newPokemon);
+
+
+}
+
+app.delete('/api/pokemons/:id', async (req, res) => {
+    const personaje = await deletePokemon(req.params.id);
+    if (!personaje) {
+      return res.status(404).json({ error: 'Pokemon not found' });
+    }
+    res.json({ message: 'Pokemon deleted successfully' });
+    
 })
 
 //update pokemon
-app.put('/api/pokemons/:id', (req, res) => {
-  const { id } = req.params;
-  const updatedData = req.body;
-  // Logic to update pokemon by id
-  res.json({ message: `Pokemon with id ${id} updated`, updatedData });
-});
 

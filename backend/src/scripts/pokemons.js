@@ -21,8 +21,33 @@ async function getOnePokemon(id) {
   return result.rows[0];
 }
 
+async function createPokemon(id, pokedex_id, nombre, descripcion, imagen_url) { 
+  const result = await dbClient.query(
+    'insert into pokemons (id, pokedex_id, nombre, descripcion, imagen_url) values ($1, $2, $3, $4, $5) RETURNING *', 
+    [id, pokedex_id, nombre, descripcion, imagen_url]);
+  
+  console.log("result",result.rows[0]);
+
+  if (result.rowCount === 0) {
+    return undefined
+  }
+  return result.rows[0];
+
+
+}
+
+async function deletePokemon(id) {
+  const result = await dbClient.query('delete * FROM pokemons where id=$1', [id]);
+
+  if (result.rowCount === 0) {
+    return undefined
+  }
+  return result.rows[0];
+}
 
 module.exports = {
   getAllPokemons,
-   getOnePokemon,
+  getOnePokemon,
+  createPokemon,
+  deletePokemon,
 }
