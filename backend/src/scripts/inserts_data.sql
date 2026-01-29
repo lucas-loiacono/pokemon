@@ -1,553 +1,217 @@
--- ========================================
--- INSERTS DE TIPOS DE POKÉMON
--- ========================================
+-- ==================== 1. TIPOS ====================
 
-INSERT INTO tipos (nombre) VALUES
-  ('normal'), 
-  ('fuego'), 
-  ('agua'), 
-  ('planta'), 
-  ('electrico'), 
-  ('hielo'),
-  ('lucha'), 
-  ('veneno'), 
-  ('tierra'), 
-  ('volador'), 
-  ('psiquico'), 
-  ('bicho'),
-  ('roca'), 
-  ('fantasma'), 
-  ('dragon'), 
-  ('siniestro'), 
-  ('acero'), 
-  ('hada');
+INSERT INTO tipos (id, nombre) VALUES
+(1, 'Normal'),
+(2, 'Fuego'),
+(3, 'Agua'),
+(4, 'Eléctrico'),
+(5, 'Planta'),
+(6, 'Hielo'),
+(7, 'Lucha'),
+(8, 'Veneno'),
+(9, 'Tierra'),
+(10, 'Volador'),
+(11, 'Psíquico'),
+(12, 'Bicho'),
+(13, 'Roca'),
+(14, 'Fantasma'),
+(15, 'Dragón'),
+(16, 'Siniestro'),
+(17, 'Acero'),
+(18, 'Hada');
 
--- ========================================
--- INSERTS DE EFECTIVIDAD DE TIPOS
--- ========================================
+SELECT setval('tipos_id_seq', 18, true);
 
+-- ==================== EFECTIVIDAD DE TIPOS ====================
+
+-- Normal
 INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
-  -- Fuego
-  ('fuego', 'planta', 2.0),
-  ('fuego', 'hielo', 2.0),
-  ('fuego', 'bicho', 2.0),
-  ('fuego', 'acero', 2.0),
-  ('fuego', 'agua', 0.5),
-  ('fuego', 'fuego', 0.5),
-  ('fuego', 'roca', 0.5),
-  ('fuego', 'dragon', 0.5),
-  
-  -- Agua
-  ('agua', 'fuego', 2.0),
-  ('agua', 'tierra', 2.0),
-  ('agua', 'roca', 2.0),
-  ('agua', 'planta', 0.5),
-  ('agua', 'agua', 0.5),
-  ('agua', 'dragon', 0.5),
-  
-  -- Planta
-  ('planta', 'agua', 2.0),
-  ('planta', 'tierra', 2.0),
-  ('planta', 'roca', 2.0),
-  ('planta', 'fuego', 0.5),
-  ('planta', 'planta', 0.5),
-  ('planta', 'veneno', 0.5),
-  ('planta', 'volador', 0.5),
-  ('planta', 'bicho', 0.5),
-  ('planta', 'dragon', 0.5),
-  ('planta', 'acero', 0.5),
-  
-  -- Eléctrico
-  ('electrico', 'agua', 2.0),
-  ('electrico', 'volador', 2.0),
-  ('electrico', 'planta', 0.5),
-  ('electrico', 'electrico', 0.5),
-  ('electrico', 'dragon', 0.5),
-  ('electrico', 'tierra', 0.0),
-  
-  -- Hielo
-  ('hielo', 'planta', 2.0),
-  ('hielo', 'tierra', 2.0),
-  ('hielo', 'volador', 2.0),
-  ('hielo', 'dragon', 2.0),
-  ('hielo', 'fuego', 0.5),
-  ('hielo', 'agua', 0.5),
-  ('hielo', 'hielo', 0.5),
-  ('hielo', 'acero', 0.5),
-  
-  -- Lucha
-  ('lucha', 'normal', 2.0),
-  ('lucha', 'hielo', 2.0),
-  ('lucha', 'roca', 2.0),
-  ('lucha', 'siniestro', 2.0),
-  ('lucha', 'acero', 2.0),
-  ('lucha', 'veneno', 0.5),
-  ('lucha', 'volador', 0.5),
-  ('lucha', 'psiquico', 0.5),
-  ('lucha', 'bicho', 0.5),
-  ('lucha', 'hada', 0.5),
-  ('lucha', 'fantasma', 0.0),
-  
-  -- Veneno
-  ('veneno', 'planta', 2.0),
-  ('veneno', 'hada', 2.0),
-  ('veneno', 'veneno', 0.5),
-  ('veneno', 'tierra', 0.5),
-  ('veneno', 'roca', 0.5),
-  ('veneno', 'fantasma', 0.5),
-  ('veneno', 'acero', 0.0),
-  
-  -- Tierra
-  ('tierra', 'fuego', 2.0),
-  ('tierra', 'electrico', 2.0),
-  ('tierra', 'veneno', 2.0),
-  ('tierra', 'roca', 2.0),
-  ('tierra', 'acero', 2.0),
-  ('tierra', 'planta', 0.5),
-  ('tierra', 'bicho', 0.5),
-  ('tierra', 'volador', 0.0),
-  
-  -- Volador
-  ('volador', 'planta', 2.0),
-  ('volador', 'lucha', 2.0),
-  ('volador', 'bicho', 2.0),
-  ('volador', 'electrico', 0.5),
-  ('volador', 'roca', 0.5),
-  ('volador', 'acero', 0.5),
-  
-  -- Psíquico
-  ('psiquico', 'lucha', 2.0),
-  ('psiquico', 'veneno', 2.0),
-  ('psiquico', 'psiquico', 0.5),
-  ('psiquico', 'acero', 0.5),
-  ('psiquico', 'siniestro', 0.0),
-  
-  -- Bicho
-  ('bicho', 'planta', 2.0),
-  ('bicho', 'psiquico', 2.0),
-  ('bicho', 'siniestro', 2.0),
-  ('bicho', 'fuego', 0.5),
-  ('bicho', 'lucha', 0.5),
-  ('bicho', 'veneno', 0.5),
-  ('bicho', 'volador', 0.5),
-  ('bicho', 'fantasma', 0.5),
-  ('bicho', 'acero', 0.5),
-  ('bicho', 'hada', 0.5),
-  
-  -- Roca
-  ('roca', 'fuego', 2.0),
-  ('roca', 'hielo', 2.0),
-  ('roca', 'volador', 2.0),
-  ('roca', 'bicho', 2.0),
-  ('roca', 'lucha', 0.5),
-  ('roca', 'tierra', 0.5),
-  ('roca', 'acero', 0.5),
-  
-  -- Fantasma
-  ('fantasma', 'psiquico', 2.0),
-  ('fantasma', 'fantasma', 2.0),
-  ('fantasma', 'siniestro', 0.5),
-  ('fantasma', 'normal', 0.0),
-  
-  -- Dragón
-  ('dragon', 'dragon', 2.0),
-  ('dragon', 'acero', 0.5),
-  ('dragon', 'hada', 0.0),
-  
-  -- Siniestro
-  ('siniestro', 'psiquico', 2.0),
-  ('siniestro', 'fantasma', 2.0),
-  ('siniestro', 'lucha', 0.5),
-  ('siniestro', 'siniestro', 0.5),
-  ('siniestro', 'hada', 0.5),
-  
-  -- Acero
-  ('acero', 'hielo', 2.0),
-  ('acero', 'roca', 2.0),
-  ('acero', 'hada', 2.0),
-  ('acero', 'fuego', 0.5),
-  ('acero', 'agua', 0.5),
-  ('acero', 'electrico', 0.5),
-  ('acero', 'acero', 0.5),
-  
-  -- Hada
-  ('hada', 'lucha', 2.0),
-  ('hada', 'dragon', 2.0),
-  ('hada', 'siniestro', 2.0),
-  ('hada', 'fuego', 0.5),
-  ('hada', 'veneno', 0.5),
-  ('hada', 'acero', 0.5);
+('Normal', 'Roca', 0.50), ('Normal', 'Acero', 0.50), ('Normal', 'Fantasma', 0.00);
 
--- ========================================
--- INSERTS DE FRUTAS
--- ========================================
+-- Fuego
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Fuego', 'Planta', 2.00), ('Fuego', 'Hielo', 2.00), ('Fuego', 'Bicho', 2.00), ('Fuego', 'Acero', 2.00),
+('Fuego', 'Fuego', 0.50), ('Fuego', 'Agua', 0.50), ('Fuego', 'Roca', 0.50), ('Fuego', 'Dragón', 0.50);
 
-INSERT INTO frutas (nombre, xp_otorgada, tiempo_produccion, imagen) VALUES
-  (
-    'Bayas verdes',
-    20,
-    20,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/e/e7/latest/20230102201736/Baya_Ziuela_EP.png'
-  ),
-  (
-    'Bayas azules',
-    35,
-    30,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/3/3d/latest/20230205160252/Baya_Aranja_EP.png'
-  ),
-  (
-    'Bayas moradas',
-    50,
-    40,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/1/12/latest/20230102201829/Baya_Wiki_EP.png'
-  );
+-- Agua
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Agua', 'Fuego', 2.00), ('Agua', 'Tierra', 2.00), ('Agua', 'Roca', 2.00),
+('Agua', 'Agua', 0.50), ('Agua', 'Planta', 0.50), ('Agua', 'Dragón', 0.50);
 
--- ========================================
--- INSERTS DE HÁBITATS
--- ========================================
+-- Eléctrico
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Eléctrico', 'Agua', 2.00), ('Eléctrico', 'Volador', 2.00),
+('Eléctrico', 'Eléctrico', 0.50), ('Eléctrico', 'Planta', 0.50), ('Eléctrico', 'Dragón', 0.50), ('Eléctrico', 'Tierra', 0.00);
 
-INSERT INTO habitats (nombre, tipo, capacidad, descripcion, imagen, nivel_requerido) VALUES
-  -- Nivel 1
-  (
-    'Agua',
-    'agua',
-    5,
-    'Hábitat para Pokémon exclusivamente de tipo Agua.',
-    'https://static.wikia.nocookie.net/dragoncity/images/8/88/Gran_H%C3%A1bitat_Mar.png/revision/latest?cb=20130705185814&path-prefix=es',
-    1
-  ),
-  (
-    'Planta',
-    'planta',
-    5,
-    'Hábitat natural para Pokémon de tipo Planta y Bicho.',
-    'https://static.wikia.nocookie.net/dragoncity/images/2/26/H%C3%A1bitat_Natura.png/revision/latest/scale-to-width-down/50?cb=20130705185919&path-prefix=es',
-    1
-  ),
-  (
-    'Fuego',
-    'fuego',
-    5,
-    'Hábitat volcánico para Pokémon de tipo Fuego.',
-    'https://static.wikia.nocookie.net/dragoncity/images/3/38/Gran_H%C3%A1bitat_Fuego.png/revision/latest/scale-to-width-down/50?cb=20130705185632&path-prefix=es',
-    1
-  ),
+-- Planta
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Planta', 'Agua', 2.00), ('Planta', 'Tierra', 2.00), ('Planta', 'Roca', 2.00),
+('Planta', 'Fuego', 0.50), ('Planta', 'Planta', 0.50), ('Planta', 'Veneno', 0.50), ('Planta', 'Volador', 0.50), ('Planta', 'Bicho', 0.50), ('Planta', 'Dragón', 0.50), ('Planta', 'Acero', 0.50);
 
-  -- Nivel 3
-  (
-    'Roca',
-    'roca',
-    5,
-    'Zona montañosa para Pokémon de tipo Roca y Tierra.',
-    'https://static.wikia.nocookie.net/dragoncity/images/2/26/H%C3%A1bitat_Tierra_Grande.png/revision/latest/scale-to-width-down/50?cb=20130705185432&path-prefix=es',
-    3
-  ),
-  (
-    'Hielo',
-    'hielo',
-    5,
-    'Región helada para Pokémon de tipo Hielo.',
-    'https://static.wikia.nocookie.net/dragoncity/images/8/8b/Gran_H%C3%A1bitat_Hielo.png/revision/latest/scale-to-width-down/50?cb=20130705191008&path-prefix=es',
-    3
-  ),
-  (
-    'Eléctrico',
-    'electrico',
-    5,
-    'Zona energizada para Pokémon de tipo Eléctrico.',
-    'https://static.wikia.nocookie.net/dragoncity/images/4/42/H%C3%A1bitat_El%C3%A9ctrico.png/revision/latest/scale-to-width-down/50?cb=20140426185402&path-prefix=es',
-    3
-  ),
-  (
-    'Volador',
-    'volador',
-    5,
-    'Hábitat aéreo para Pokémon de tipo Volador.',
-    'https://static.wikia.nocookie.net/dragoncity/images/c/c1/H%C3%A1bitat_Alma_2.png/revision/latest/scale-to-width-down/1000?cb=20150430192827&path-prefix=es',
-    3
-  ),
+-- Hielo
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Hielo', 'Planta', 2.00), ('Hielo', 'Tierra', 2.00), ('Hielo', 'Volador', 2.00), ('Hielo', 'Dragón', 2.00),
+('Hielo', 'Fuego', 0.50), ('Hielo', 'Agua', 0.50), ('Hielo', 'Hielo', 0.50), ('Hielo', 'Acero', 0.50);
 
-  -- Nivel 7
-  (
-    'Acero',
-    'acero',
-    5,
-    'Hábitat resistente para Pokémon de tipo Acero.',
-    'https://static.wikia.nocookie.net/dragoncity/images/6/6a/Gran_H%C3%A1bitat_Metal.png/revision/latest/scale-to-width-down/50?cb=20130705191125&path-prefix=es',
-    7
-  ),
-  (
-    'Lucha',
-    'lucha',
-    5,
-    'Zona de entrenamiento para Pokémon de tipo Lucha.',
-    'https://static.wikia.nocookie.net/dragoncity/images/8/84/H%C3%A1bitat_B%C3%A9lico.png/revision/latest/scale-to-width-down/50?cb=20130809220710&path-prefix=es',
-    7
-  ),
+-- Lucha
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Lucha', 'Normal', 2.00), ('Lucha', 'Hielo', 2.00), ('Lucha', 'Roca', 2.00), ('Lucha', 'Siniestro', 2.00), ('Lucha', 'Acero', 2.00),
+('Lucha', 'Veneno', 0.50), ('Lucha', 'Volador', 0.50), ('Lucha', 'Psíquico', 0.50), ('Lucha', 'Bicho', 0.50), ('Lucha', 'Hada', 0.50), ('Lucha', 'Fantasma', 0.00);
 
-  -- Nivel 12
-  (
-    'Oscuridad',
-    'siniestro',
-    5,
-    'Hábitat oscuro para Pokémon Veneno, Siniestro y Fantasma.',
-    'https://static.wikia.nocookie.net/dragoncity/images/c/ca/H%C3%A1bitat_Oscuro.png/revision/latest/scale-to-width-down/50?cb=20130705191219&path-prefix=es',
-    12
-  ),
-  (
-    'Hada',
-    'hada',
-    5,
-    'Hábitat mágico para Pokémon de tipo Hada y Psíquico.',
-    'https://static.wikia.nocookie.net/dragoncity/images/b/b5/H%C3%A1bitat_Luz.png/revision/latest/scale-to-width-down/50?cb=20130809220627&path-prefix=es',
-    12
-  ),
+-- Veneno
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Veneno', 'Planta', 2.00), ('Veneno', 'Hada', 2.00),
+('Veneno', 'Veneno', 0.50), ('Veneno', 'Tierra', 0.50), ('Veneno', 'Roca', 0.50), ('Veneno', 'Fantasma', 0.50), ('Veneno', 'Acero', 0.00);
 
-  -- Nivel 15
-  (
-    'Dragón / Legendario',
-    'dragon',
-    5,
-    'Hábitat ancestral reservado para Pokémon de tipo Dragón y Pokémon Legendarios.',
-    'https://static.wikia.nocookie.net/dragoncity/images/8/8f/H%C3%A1bitat_Puro.png/revision/latest/scale-to-width-down/50?cb=20140225194729&path-prefix=es',
-    15
-  );
+-- Tierra
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Tierra', 'Fuego', 2.00), ('Tierra', 'Eléctrico', 2.00), ('Tierra', 'Veneno', 2.00), ('Tierra', 'Roca', 2.00), ('Tierra', 'Acero', 2.00),
+('Tierra', 'Planta', 0.50), ('Tierra', 'Bicho', 0.50), ('Tierra', 'Volador', 0.00);
 
--- ========================================
--- INSERTS DE ZONAS DE CAPTURA
--- ========================================
+-- Volador
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Volador', 'Planta', 2.00), ('Volador', 'Lucha', 2.00), ('Volador', 'Bicho', 2.00),
+('Volador', 'Eléctrico', 0.50), ('Volador', 'Roca', 0.50), ('Volador', 'Acero', 0.50);
 
-INSERT INTO zonas_captura (nombre, descripcion, imagen, nivel_requerido) VALUES
-  -- Nivel 1
-  (
-    'Agua',
-    'Zona acuática donde aparecen Pokémon de tipo Agua.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatagua.png',
-    1
-  ),
-  (
-    'Planta',
-    'Zona natural donde aparecen Pokémon de tipo Planta y Bicho.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatplanta.png',
-    1
-  ),
-  (
-    'Fuego',
-    'Zona volcánica donde aparecen Pokémon de tipo Fuego.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatfuego.png',
-    1
-  ),
+-- Psíquico
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Psíquico', 'Lucha', 2.00), ('Psíquico', 'Veneno', 2.00),
+('Psíquico', 'Psíquico', 0.50), ('Psíquico', 'Acero', 0.50), ('Psíquico', 'Siniestro', 0.00);
 
-  -- Nivel 3
-  (
-    'Roca',
-    'Zona montañosa donde aparecen Pokémon de tipo Roca y Tierra.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitattierra.png',
-    3
-  ),
-  (
-    'Hielo',
-    'Zona helada donde aparecen Pokémon de tipo Hielo.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitathielo.png',
-    3
-  ),
-  (
-    'Eléctrico',
-    'Zona energizada donde aparecen Pokémon de tipo Eléctrico.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatelectrico.png',
-    3
-  ),
-  (
-    'Volador',
-    'Zona aérea donde aparecen Pokémon de tipo Volador.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatvolador.png',
-    3
-  ),
+-- Bicho
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Bicho', 'Planta', 2.00), ('Bicho', 'Psíquico', 2.00), ('Bicho', 'Siniestro', 2.00),
+('Bicho', 'Fuego', 0.50), ('Bicho', 'Lucha', 0.50), ('Bicho', 'Veneno', 0.50), ('Bicho', 'Volador', 0.50), ('Bicho', 'Fantasma', 0.50), ('Bicho', 'Acero', 0.50), ('Bicho', 'Hada', 0.50);
 
-  -- Nivel 7
-  (
-    'Acero',
-    'Zona rica en minerales donde aparecen Pokémon de tipo Acero.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatacero.png',
-    7
-  ),
-  (
-    'Lucha',
-    'Zona de entrenamiento donde aparecen Pokémon de tipo Lucha.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatlucha.png',
-    7
-  ),
+-- Roca
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Roca', 'Fuego', 2.00), ('Roca', 'Hielo', 2.00), ('Roca', 'Volador', 2.00), ('Roca', 'Bicho', 2.00),
+('Roca', 'Lucha', 0.50), ('Roca', 'Tierra', 0.50), ('Roca', 'Acero', 0.50);
 
-  -- Nivel 12
-  (
-    'Oscuridad',
-    'Zona oscura donde aparecen Pokémon de tipo Veneno, Siniestro y Fantasma.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitatoscuro.png',
-    12
-  ),
-  (
-    'Hada',
-    'Zona mágica donde aparecen Pokémon de tipo Hada y Psíquico.',
-    'https://raw.githubusercontent.com/lucas-loiacono/imagenes/main/assets/habitats/habitathada.png',
-    12
-  );
+-- Fantasma
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Fantasma', 'Psíquico', 2.00), ('Fantasma', 'Fantasma', 2.00),
+('Fantasma', 'Siniestro', 0.50), ('Fantasma', 'Normal', 0.00);
 
--- ========================================
--- INSERTS DE ENTRENADORES
--- ========================================
+-- Dragón
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Dragón', 'Dragón', 2.00),
+('Dragón', 'Acero', 0.50), ('Dragón', 'Hada', 0.00);
 
-INSERT INTO entrenadores (nombre, descripcion, nivel, edad, imagen) VALUES
-  -- Combates iniciales
-  (
-    'Entrenador Inicial',
-    'Primer combate del juego.  Apenas sabe lanzar una Poké Ball.',
-    1,
-    10,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/8/8b/latest/20131124130440/VS_Ni%C3%B1a_so%C3%B1adora.png'
-  ),
-  (
-    'Entrenador Principiante',
-    'Segundo combate del juego. Comienza a entender cómo entrenar Pokémon.',
-    2,
-    11,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/9/95/latest/20150914213602/VS_Preescolar_%28ni%C3%B1a%29.png'
-  ),
+-- Siniestro
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Siniestro', 'Psíquico', 2.00), ('Siniestro', 'Fantasma', 2.00),
+('Siniestro', 'Lucha', 0.50), ('Siniestro', 'Siniestro', 0.50), ('Siniestro', 'Hada', 0.50);
 
-  -- Entrenadores débiles
-  (
-    'Joven Entrenador',
-    'Entrenador principiante con poca experiencia en combate.',
-    3,
-    10,
-    'https://static.wikia.nocookie.net/espokemon/images/c/cc/VS_Joven. png/revision/latest? cb=20131101232251'
-  ),
-  (
-    'Entrenadora Novata',
-    'Está dando sus primeros pasos como entrenadora Pokémon.',
-    5,
-    11,
-    'https://static.wikia.nocookie.net/espokemon/images/6/66/VS_Chica.png/revision/latest? cb=20150914125916'
-  ),
-  (
-    'Criador Principiante',
-    'Criador joven que recién comienza a entrenar Pokémon.',
-    8,
-    22,
-    'https://static.wikia.nocookie.net/espokemon/images/4/40/VS_Entrenador_promesa.png/revision/latest?cb=20131106174920'
-  ),
-  (
-    'Pescador Amateur',
-    'Entrenador casual que utiliza Pokémon de tipo agua de bajo nivel.',
-    10,
-    30,
-    'https://static.wikia.nocookie.net/espokemon/images/a/a9/VS_Pescador.png/revision/latest? cb=20131103023500'
-  ),
-  (
-    'Excursionista Inexperto',
-    'Explorador principiante de zonas montañosas.',
-    13,
-    27,
-    'https://static.wikia.nocookie.net/espokemon/images/9/9c/VS_Monta%C3%B1ero.png/revision/latest?cb=20141016124617'
-  ),
-  (
-    'Entrenador Escolar',
-    'Estudiante que entrena Pokémon como actividad recreativa.',
-    15,
-    13,
-    'https://static.wikia.nocookie.net/espokemon/images/4/46/VS_Pok%C3%A9fan_%28hombre%29.png/revision/latest?cb=20150914212621'
-  ),
+-- Acero
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Acero', 'Hielo', 2.00), ('Acero', 'Roca', 2.00), ('Acero', 'Hada', 2.00),
+('Acero', 'Fuego', 0.50), ('Acero', 'Agua', 0.50), ('Acero', 'Eléctrico', 0.50), ('Acero', 'Acero', 0.50);
 
-  -- Entrenadores clásicos
-  (
-    'Red',
-    'Entrenador legendario de Kanto.',
-    16,
-    11,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/a/a0/latest/20210914072530/VS_Rojo_Masters.png'
-  ),
-  (
-    'Leaf',
-    'Entrenadora clásica de Kanto.',
-    18,
-    11,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/9/9f/latest/20200825060748/VS_Hoja_%28Traje_S%29_Masters.png'
-  ),
-  (
-    'Blue',
-    'Rival competitivo y estratega.',
-    19,
-    11,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/b/ba/latest/20200825060918/VS_Azul_%28Traje_S%29_Masters.png'
-  ),
-  (
-    'Ethan',
-    'Entrenador de Johto.',
-    20,
-    12,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/c/ce/latest/20220526112344/VS_Eco_%28Traje_S%29_Masters_EX.png'
-  ),
-  (
-    'Lyra',
-    'Entrenadora de Johto.',
-    21,
-    12,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/9/9b/latest/20220526171314/VS_Lira_Masters_EX.png'
-  ),
-  (
-    'Brendan',
-    'Entrenador de Hoenn.',
-    22,
-    12,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/6/60/latest/20201126084344/VS_Bruno_Masters_EX.png'
-  ),
-  (
-    'May',
-    'Entrenadora de Hoenn.',
-    23,
-    12,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/4/4f/latest/20120305164046/Aura.png'
-  ),
-  (
-    'Lucas',
-    'Entrenador de Sinnoh.',
-    24,
-    12,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/3/39/latest/20211221092337/VS_Le%C3%B3n_Masters.png'
-  ),
+-- Hada
+INSERT INTO tipo_efectividad (tipo_atacante, tipo_defensor, multiplicador) VALUES
+('Hada', 'Lucha', 2.00), ('Hada', 'Dragón', 2.00), ('Hada', 'Siniestro', 2.00),
+('Hada', 'Fuego', 0.50), ('Hada', 'Veneno', 0.50), ('Hada', 'Acero', 0.50);
 
-  -- Líderes de gimnasio
-  (
-    'Brock',
-    'Líder de gimnasio tipo roca.',
-    30,
-    15,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/9/99/latest/20230902182628/Cara_de_Brock_LGPE.png'
-  ),
-  (
-    'Misty',
-    'Líder de gimnasio tipo agua.',
-    30,
-    16,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/3/32/latest/20210826070528/VS_Misty_%28Kanto%29_Masters.png'
-  ),
-  (
-    'Lt. Surge',
-    'Líder de gimnasio tipo eléctrico.',
-    30,
-    34,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/d/db/latest/20190812173135/VS_Teniente_Surge_Masters.png'
-  ),
-  (
-    'Erika',
-    'Líder de gimnasio tipo planta.',
-    30,
-    18,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/d/dd/latest/20201126083954/VS_Erika_%28Temporada_20%29_Masters.png'
-  ),
-  (
-    'Sabrina',
-    'Líder de gimnasio tipo psíquico.',
-    30,
-    21,
-    'https://images.wikidexcdn.net/mwuploads/wikidex/6/65/latest/20210728081625/VS_Sabrina_Masters_EX.png'
-  );
+-- ==================== 2. HÁBITATS ====================
+
+INSERT INTO habitats (id, tipo, capacidad, imagen_url) VALUES
+(1, 'Pradera', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatllanura.jpg'),
+(2, 'Bosque', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatbosque.png'),
+(3, 'Agua', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatagua.png'),
+(4, 'Acero', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatacero.png'),
+(5, 'Desierto', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatdesierto.jpeg'),
+(6, 'Hielo', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitathielo.png');
+
+SELECT setval('habitats_id_seq', 6, true);
+
+-- Tipos aceptados por hábitat
+INSERT INTO habitat_tipos_aceptados (habitat_id, tipo_nombre) VALUES
+(1, 'Normal'), (1, 'Eléctrico'), (1, 'Psíquico'),
+(2, 'Planta'), (2, 'Bicho'), (2, 'Veneno'), (2, 'Hada'),
+(3, 'Agua'), (3, 'Volador'),
+(4, 'Roca'), (4, 'Lucha'), (4, 'Acero'), (4, 'Siniestro'),
+(5, 'Tierra'), (5, 'Fuego'), (5, 'Fantasma'),
+(6, 'Hielo'), (6, 'Dragón');
+
+-- ==================== 3. ZONAS DE CAPTURA ====================
+
+INSERT INTO zonas (id, nombre, tipo_principal, nivel_requerido, descripcion, imagen_url) VALUES
+(1, 'Pradera', 'Normal', 1, 'Campos abiertos donde habitan Pokémon normales, eléctricos y psíquicos', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturallanura.png'),
+(2, 'Bosque', 'Planta', 1, 'Bosque frondoso habitado por Pokémon de planta, bicho, veneno y hada', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturabosque.png'),
+(3, 'Playa', 'Agua', 1, 'Costa marina donde encuentras Pokémon de agua y voladores', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturaplaya.png'),
+(4, 'Cueva', 'Roca', 1, 'Cueva oscura con Pokémon de roca, lucha, acero y siniestro', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturacueva.png'),
+(5, 'Desierto', 'Tierra', 1, 'Desierto árido habitado por Pokémon de tierra, fuego y fantasma', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturadesierto.png'),
+(6, 'Nieve', 'Hielo', 1, 'Montañas nevadas donde viven Pokémon de hielo y dragón', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturahielo.png');
+
+SELECT setval('zonas_id_seq', 6, true);
+
+-- ==================== 4. CONFIGURACIÓN ====================
+
+INSERT INTO inventario_slots_config (nivel_jugador, slots_disponibles) VALUES
+(1, 10), (2, 10), (3, 10), (4, 10),
+(5, 15), (6, 15), (7, 15), (8, 15), (9, 15),
+(10, 20), (11, 20), (12, 20), (13, 20), (14, 20),
+(15, 25), (16, 25), (17, 25), (18, 25), (19, 25),
+(20, 30), (21, 30), (22, 30), (23, 30), (24, 30),
+(25, 40), (26, 40), (27, 40), (28, 40), (29, 40), (30, 40);
+
+INSERT INTO granjas_slots_config (nivel_jugador, slots_disponibles) VALUES
+(1, 1), (2, 1),
+(3, 2), (4, 2), (5, 2),
+(6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3),
+(12, 4), (13, 4), (14, 4), (15, 4), (16, 4), (17, 4),
+(18, 5), (19, 5), (20, 5), (21, 5), (22, 5), (23, 5), (24, 5),
+(25, 6), (26, 6), (27, 6), (28, 6), (29, 6), (30, 6);
+
+INSERT INTO frutas (id, nombre, tiempo_produccion_minutos, cantidad_produccion, xp_otorgada, imagen_url) VALUES
+(1, 'Bayas verdes', 10, 10, 20, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png')
+ON CONFLICT (id) DO UPDATE SET
+  nombre = EXCLUDED.nombre,
+  tiempo_produccion_minutos = EXCLUDED.tiempo_produccion_minutos,
+  cantidad_produccion = EXCLUDED.cantidad_produccion,
+  xp_otorgada = EXCLUDED.xp_otorgada,
+  imagen_url = EXCLUDED.imagen_url;
+
+SELECT setval('frutas_id_seq', 1, true);
+
+-- ==================== ZONA_TIPOS ====================
+
+-- Zona 1: Pradera (Normal, Eléctrico, Psíquico)
+INSERT INTO zona_tipos (zona_id, tipo_id) VALUES
+(1, (SELECT id FROM tipos WHERE nombre = 'Normal')),
+(1, (SELECT id FROM tipos WHERE nombre = 'Eléctrico')),
+(1, (SELECT id FROM tipos WHERE nombre = 'Psíquico'));
+
+-- Zona 2: Bosque (Planta, Bicho, Veneno, Hada)
+INSERT INTO zona_tipos (zona_id, tipo_id) VALUES
+(2, (SELECT id FROM tipos WHERE nombre = 'Planta')),
+(2, (SELECT id FROM tipos WHERE nombre = 'Bicho')),
+(2, (SELECT id FROM tipos WHERE nombre = 'Veneno')),
+(2, (SELECT id FROM tipos WHERE nombre = 'Hada'));
+
+-- Zona 3: Playa (Agua, Volador)
+INSERT INTO zona_tipos (zona_id, tipo_id) VALUES
+(3, (SELECT id FROM tipos WHERE nombre = 'Agua')),
+(3, (SELECT id FROM tipos WHERE nombre = 'Volador'));
+
+-- Zona 4: Cueva (Roca, Lucha, Acero, Siniestro)
+INSERT INTO zona_tipos (zona_id, tipo_id) VALUES
+(4, (SELECT id FROM tipos WHERE nombre = 'Roca')),
+(4, (SELECT id FROM tipos WHERE nombre = 'Lucha')),
+(4, (SELECT id FROM tipos WHERE nombre = 'Acero')),
+(4, (SELECT id FROM tipos WHERE nombre = 'Siniestro'));
+
+-- Zona 5: Desierto (Tierra, Fuego, Fantasma)
+INSERT INTO zona_tipos (zona_id, tipo_id) VALUES
+(5, (SELECT id FROM tipos WHERE nombre = 'Tierra')),
+(5, (SELECT id FROM tipos WHERE nombre = 'Fuego')),
+(5, (SELECT id FROM tipos WHERE nombre = 'Fantasma'));
+
+-- Zona 6: Nieve (Hielo, Dragón)
+INSERT INTO zona_tipos (zona_id, tipo_id) VALUES
+(6, (SELECT id FROM tipos WHERE nombre = 'Hielo')),
+(6, (SELECT id FROM tipos WHERE nombre = 'Dragón'));
+
+-- Actualizar secuencia
+SELECT setval('zona_tipos_id_seq', (SELECT MAX(id) FROM zona_tipos));

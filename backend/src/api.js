@@ -5,15 +5,81 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-
-const{
-    getAllPokemons,
-    getOnePokemon,
-    createPokemon,
-    deletePokemon
-
+const {
+  getAllPokemons,
+  getOnePokemon,
+  createPokemon,
+  updatePokemon,
+  deletePokemon
 } = require('./scripts/pokemons');
 
+const {
+  getJugador,
+  getJugadorPokemons,
+  getJugadorInventario,
+  updateJugadorStats,
+  setApodo,
+  eliminarPokemon  
+} = require('./scripts/jugadores');
+
+const {
+  getAllHabitats,
+  getJugadorHabitats,
+  getHabitatPokemons,
+  asignarPokemonHabitat,
+  quitarPokemonHabitat
+} = require('./scripts/habitats');
+
+const {
+  getAllZonas,
+  getOneZona,
+  getZonaPokemons,
+  capturarPokemon
+} = require('./scripts/zonas');
+
+const {
+  getJugadorGranjas,
+  getGranjaDetalle,
+  recolectarFrutas,
+  crearGranjasIniciales
+} = require('./scripts/granjas');
+
+const {
+  getEquipo,
+  agregarAlEquipo,
+  quitarDelEquipo,
+  reordenarEquipo
+} = require('./scripts/equipo');
+
+const {
+  getAllEntrenadores,
+  getOneEntrenador,
+  iniciarCombate,
+  getHistorialBatallas
+} = require('./scripts/combate');
+
+const {
+  alimentarPokemon
+} = require('./scripts/alimentar');
+
+const {
+  verificarSubidaNivelPokemon,
+  verificarSubidaNivelJugador,
+  getInfoNivelPokemon,
+  getInfoNivelJugador
+} = require('./scripts/niveles');
+
+const {
+  puedeEvolucionar,
+  evolucionarPokemon
+} = require('./scripts/evoluciones');
+
+
+const {
+  inicializarJuego,
+  reiniciarJuego,
+  getStartersDisponibles
+} = require('./scripts/inicializacion');
 
 
 // Health route
@@ -21,19 +87,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
-app.listen(PORT, () => {
-  console.log("Server Listening on PORT:", PORT);
-});
+// ==================== POKEMONS ====================
 
-
-//pokemons
-//get all pokemons
+// Get all pokemons
 app.get('/api/pokemons', async (req, res) => {
   const pokemons = await getAllPokemons();
-    res.json(pokemons);
+  res.json(pokemons);
 });
 
-//get pokemon by id
+// Get pokemon by id
 app.get('/api/pokemons/:id', async (req, res) => {
   const pokemon = await getOnePokemon(req.params.id);
   if (!pokemon) {
@@ -42,34 +104,435 @@ app.get('/api/pokemons/:id', async (req, res) => {
   res.json(pokemon);
 });
 
-//insert new pokemon 
-app.post('/api/pokemons'), async (req, res) => {
-    
-    
-    if (!req.body.nombre || !req.body.descripcion || !req.body.imagen_url) {                
-        return res.status(400).json({ error: 'Missing required fields' });
+// Insert new pokemon 
+app.post('/api/pokemons', async (req, res) => {
+  if (!req.body.pokedex_id || !req.body.nombre || !req.body.imagen_url) {
+    return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  const newPokemon = await createPokemon(req.body.pokedex_id, req.body.nombre, req.body.imagen_url);
 
-    const newPokemon = await createPokemon(req.body.nombre , req.body.descripcion, req.body.imagen_url);
+  if (!newPokemon) {
+    return res.status(500).json({ error: 'Failed to create pokemon' });
+  }
+  res.status(201).json(newPokemon);
+});
 
-    if (!newPokemon) {
-        return res.status(500).json({ error: 'Failed to create pokemon' });
-    }
-    res.json(newPokemon);
+// Update pokemon
+app.put('/api/pokemons/:id', async (req, res) => {
+  if (!req.body.nombre && !req.body.imagen_url) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
 
+  const updatedPokemon = await updatePokemon(req.params.id, req.body.nombre, req.body.imagen_url);
 
-}
+  if (!updatedPokemon) {
+    return res.status(404).json({ error: 'Pokemon not found' });
+  }
+  res.json(updatedPokemon);
+});
 
+// Delete pokemon
 app.delete('/api/pokemons/:id', async (req, res) => {
-    const personaje = await deletePokemon(req.params.id);
-    if (!personaje) {
-      return res.status(404).json({ error: 'Pokemon not found' });
-    }
-    res.json({ message: 'Pokemon deleted successfully' });
-    
-})
+  const pokemon = await deletePokemon(req.params.id);
+  if (!pokemon) {
+    return res.status(404).json({ error: 'Pokemon not found' });
+  }
+  res.json({ message: 'Pokemon deleted successfully' });
+});
 
-//update pokemon
+// ==================== JUGADOR ====================
 
-//terminar update y hacer verificacion de campos obligatorios
+// Get jugador info
+app.get('/api/jugador', async (req, res) => {
+  const jugador = await getJugador();
+  if (!jugador) {
+    return res.status(404).json({ error: 'Jugador not found' });
+  }
+  res.json(jugador);
+});
+
+// Get jugador's pokemons
+app.get('/api/jugador/pokemons', async (req, res) => {
+  const pokemons = await getJugadorPokemons();
+  res.json(pokemons);
+});
+
+// Get jugador's inventario (frutas)
+app.get('/api/jugador/inventario', async (req, res) => {
+  const inventario = await getJugadorInventario();
+  res.json(inventario);
+});
+
+// Update jugador stats (usado internamente por el juego)
+app.put('/api/jugador/stats', async (req, res) => {
+  const { nivel, xp } = req.body;
+
+  if (nivel === undefined && xp === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const updatedJugador = await updateJugadorStats(nivel, xp);
+
+  if (!updatedJugador) {
+    return res.status(500).json({ error: 'Failed to update jugador' });
+  }
+  res.json(updatedJugador);
+});
+
+// Set apodo to a pokemon
+app.put('/api/jugador/pokemons/:id/apodo', async (req, res) => {
+  const { apodo } = req.body;
+
+  if (!apodo) {
+    return res.status(400).json({ error: 'Missing apodo' });
+  }
+
+  const pokemon = await setApodo(req.params.id, apodo);
+
+  if (!pokemon) {
+    return res.status(404).json({ error: 'Pokemon not found' });
+  }
+
+  res.json(pokemon);
+});
+
+// ← AGREGAR ESTO:
+// Eliminar Pokémon del inventario
+app.delete('/api/jugador/pokemons/:id', async (req, res) => {
+  const result = await eliminarPokemon(req.params.id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// ==================== HÁBITATS ====================
+
+// Get all habitat types
+app.get('/api/habitats', async (req, res) => {
+  const habitats = await getAllHabitats();
+  res.json(habitats);
+});
+
+// Get jugador's habitats
+app.get('/api/jugador/habitats', async (req, res) => {
+  const habitats = await getJugadorHabitats();
+  res.json(habitats);
+});
+
+// Get pokemons in a habitat
+app.get('/api/jugador/habitats/:id/pokemons', async (req, res) => {
+  const pokemons = await getHabitatPokemons(req.params.id);
+  res.json(pokemons);
+});
+
+// Assign pokemon to habitat
+app.post('/api/jugador/habitats/:id/asignar', async (req, res) => {
+  const { jugador_pokemon_id } = req.body;
+
+  if (!jugador_pokemon_id) {
+    return res.status(400).json({ error: 'Missing jugador_pokemon_id' });
+  }
+
+  const result = await asignarPokemonHabitat(req.params.id, jugador_pokemon_id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Remove pokemon from habitat
+app.delete('/api/jugador/habitats/:id/pokemons/:pokemon_id', async (req, res) => {
+  const result = await quitarPokemonHabitat(req.params.id, req.params.pokemon_id);
+
+  if (!result) {
+    return res.status(404).json({ error: 'Pokemon not found in habitat' });
+  }
+
+  res.json({ message: 'Pokemon removed from habitat' });
+});
+
+// ==================== ZONAS ====================
+
+// Get all zones
+app.get('/api/zonas', async (req, res) => {
+  const zonas = await getAllZonas();
+  res.json(zonas);
+});
+
+// Get zone by id
+app.get('/api/zonas/:id', async (req, res) => {
+  const zona = await getOneZona(req.params.id);
+  if (!zona) {
+    return res.status(404).json({ error: 'Zona not found' });
+  }
+  res.json(zona);
+});
+
+// Get pokemons available in a zone
+app.get('/api/zonas/:id/pokemons', async (req, res) => {
+  const pokemons = await getZonaPokemons(req.params.id);
+  res.json(pokemons);
+});
+
+// Capture a pokemon from a zone
+app.post('/api/zonas/:id/capturar', async (req, res) => {
+  const result = await capturarPokemon(req.params.id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// ==================== GRANJAS ====================
+
+// Get jugador's granjas (con info de desbloqueo)
+app.get('/api/jugador/granjas', async (req, res) => {
+  const result = await getJugadorGranjas();
+  res.json(result);
+});
+
+// Get granja detail
+app.get('/api/jugador/granjas/:id', async (req, res) => {
+  const granja = await getGranjaDetalle(req.params.id);
+  if (!granja) {
+    return res.status(404).json({ error: 'Granja not found' });
+  }
+  res.json(granja);
+});
+
+// Recolectar frutas
+app.post('/api/jugador/granjas/:id/recolectar', async (req, res) => {
+  const result = await recolectarFrutas(req.params.id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Crear 6 granjas al inicio (ejecutar una sola vez)
+app.post('/api/jugador/granjas/inicializar', async (req, res) => {
+  const result = await crearGranjasIniciales();
+  res.json(result);
+});
+
+
+// ==================== EQUIPO ====================
+
+// Get jugador's team
+app.get('/api/jugador/equipo', async (req, res) => {
+  const equipo = await getEquipo();
+  res.json(equipo);
+});
+
+// Add pokemon to team
+app.post('/api/jugador/equipo/agregar', async (req, res) => {
+  const { jugador_pokemon_id, posicion } = req.body;
+
+  if (!jugador_pokemon_id) {
+    return res.status(400).json({ error: 'Missing jugador_pokemon_id' });
+  }
+
+  const result = await agregarAlEquipo(jugador_pokemon_id, posicion);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Remove pokemon from team
+app.delete('/api/jugador/equipo/:posicion', async (req, res) => {
+  const result = await quitarDelEquipo(req.params.posicion);
+
+  if (!result) {
+    return res.status(404).json({ error: 'Pokemon not found in that position' });
+  }
+
+  res.json({ message: 'Pokemon removed from team' });
+});
+
+// Reorder team
+app.put('/api/jugador/equipo/reordenar', async (req, res) => {
+  const { nuevoOrden } = req.body;
+
+  if (!nuevoOrden || !Array.isArray(nuevoOrden)) {
+    return res.status(400).json({ error: 'Missing or invalid nuevoOrden' });
+  }
+
+  const result = await reordenarEquipo(nuevoOrden);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+
+// ==================== COMBATE ====================
+
+// Get all entrenadores
+app.get('/api/entrenadores', async (req, res) => {
+  const entrenadores = await getAllEntrenadores();
+  res.json(entrenadores);
+});
+
+// Get entrenador by id
+app.get('/api/entrenadores/:id', async (req, res) => {
+  const entrenador = await getOneEntrenador(req.params.id);
+  if (!entrenador) {
+    return res.status(404).json({ error: 'Entrenador not found' });
+  }
+  res.json(entrenador);
+});
+
+// Iniciar combate
+app.post('/api/combate/iniciar', async (req, res) => {
+  const { entrenador_id } = req.body;
+
+  if (!entrenador_id) {
+    return res.status(400).json({ error: 'Missing entrenador_id' });
+  }
+
+  const result = await iniciarCombate(entrenador_id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Get historial de batallas
+app.get('/api/combate/historial', async (req, res) => {
+  const historial = await getHistorialBatallas();
+  res.json(historial);
+});
+
+
+app.post('/api/jugador/pokemons/:id/alimentar', async (req, res) => {
+  const result = await alimentarPokemon(req.params.id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// ==================== NIVELES ====================
+
+// Verificar subida de nivel de un Pokémon
+app.post('/api/jugador/pokemons/:id/verificar-nivel', async (req, res) => {
+  const result = await verificarSubidaNivelPokemon(req.params.id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Verificar subida de nivel del jugador
+app.post('/api/jugador/verificar-nivel', async (req, res) => {
+  const result = await verificarSubidaNivelJugador();
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Obtener info de nivel de un Pokémon
+app.get('/api/jugador/pokemons/:id/nivel', async (req, res) => {
+  const info = await getInfoNivelPokemon(req.params.id);
+
+  if (!info) {
+    return res.status(404).json({ error: 'Pokemon not found' });
+  }
+
+  res.json(info);
+});
+
+// Obtener info de nivel del jugador
+app.get('/api/jugador/nivel', async (req, res) => {
+  const info = await getInfoNivelJugador();
+
+  if (!info) {
+    return res.status(404).json({ error: 'Jugador not found' });
+  }
+
+  res.json(info);
+});
+
+// ==================== EVOLUCIONES ====================
+
+// Verificar si un Pokémon puede evolucionar
+app.get('/api/jugador/pokemons/:id/puede-evolucionar', async (req, res) => {
+  const result = await puedeEvolucionar(req.params.id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Evolucionar un Pokémon
+app.post('/api/jugador/pokemons/:id/evolucionar', async (req, res) => {
+  const result = await evolucionarPokemon(req.params.id);
+
+  if (result.error || !result.evolucionado) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// ==================== INICIALIZACIÓN ====================
+
+// Obtener Pokémon starters disponibles
+app.get('/api/inicializar/starters', async (req, res) => {
+  const starters = await getStartersDisponibles();
+  res.json(starters);
+});
+
+// Inicializar juego con un starter
+app.post('/api/inicializar', async (req, res) => {
+  const { pokemon_starter_id } = req.body;
+
+  if (!pokemon_starter_id) {
+    return res.status(400).json({ error: 'Missing pokemon_starter_id' });
+  }
+
+  const result = await inicializarJuego(pokemon_starter_id);
+
+  if (result.error) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// Reiniciar juego (BORRAR TODO)
+app.post('/api/reiniciar', async (req, res) => {
+  const result = await reiniciarJuego();
+  res.json(result);
+});
+
+app.listen(PORT, () => {
+  console.log("Server Listening on PORT:", PORT);
+});
+
