@@ -5,6 +5,7 @@ CREATE TABLE pokemons (
   id SERIAL PRIMARY KEY,
   pokedex_id INT UNIQUE NOT NULL,
   nombre VARCHAR(100) NOT NULL,
+  descripcion TEXT,
   imagen_url TEXT
 );
 
