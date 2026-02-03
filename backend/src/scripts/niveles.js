@@ -8,17 +8,16 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-const JUGADOR_ID = 1;
 const MAX_NIVEL = 30;
 const XP_POR_NIVEL = 100;
 
-// ==================== CALCULAR XP NECESARIA ====================
-
-function calcularXPNecesaria(nivelActual) {
-  // Siempre 100 XP por nivel
-  return XP_POR_NIVEL;
+// ==================== HELPER: Obtener ID del jugador actual ====================
+async function getJugadorId() {
+  const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+  return result.rows[0]?.id || null;
 }
 
+// ==================== CALCULAR XP ACUMULADA ====================
 function calcularXPAcumulada(nivel) {
   // XP total acumulada hasta llegar a ese nivel
   // Nivel 1 = 0 XP
@@ -31,66 +30,93 @@ function calcularXPAcumulada(nivel) {
 // ==================== SUBIR NIVEL POKÉMON ====================
 
 async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // 1. Obtener Pokémon
   const pokemon = await dbClient.query(`
-    SELECT id, nivel, xp, pokemon_id
-    FROM jugador_pokemons
-    WHERE id = $1 AND jugador_id = $2
-  `, [jugador_pokemon_id, JUGADOR_ID]);
+    SELECT 
+      jp.id, 
+      jp.nivel, 
+      jp.xp, 
+      jp.pokemon_id,
+      p.nombre as pokemon_nombre,
+      jp.apodo
+    FROM jugador_pokemons jp
+    INNER JOIN pokemons p ON jp.pokemon_id = p.id
+    WHERE jp.id = $1 AND jp.jugador_id = $2
+  `, [jugador_pokemon_id, jugadorId]);
 
   if (pokemon.rowCount === 0) {
     return { error: 'Pokemon not found' };
   }
 
-  const { nivel: nivelActual, xp: xpActual } = pokemon.rows[0];
+  let { nivel, xp, pokemon_nombre, apodo } = pokemon.rows[0];
+  const nivelOriginal = nivel;
 
   // 2. Verificar si puede subir de nivel
-  if (nivelActual >= MAX_NIVEL) {
+  if (nivel >= MAX_NIVEL) {
     return { 
       subio_nivel: false, 
-      mensaje: 'Pokemon at max level',
-      nivel: nivelActual,
-      xp: xpActual
+      mensaje: `${apodo || pokemon_nombre} ya está en el nivel máximo (${MAX_NIVEL})`,
+      nivel: nivel,
+      xp: xp
     };
   }
 
   // 3. Calcular cuántos niveles sube
-  const xpAcumuladaActual = calcularXPAcumulada(nivelActual);
-  const nivelesQuePuedaSubir = Math.floor((xpActual - xpAcumuladaActual) / XP_POR_NIVEL);
-  const nivelNuevo = Math.min(nivelActual + nivelesQuePuedaSubir, MAX_NIVEL);
+  let nivelesSubidos = [];
+  
+  while (nivel < MAX_NIVEL) {
+    const xpNecesaria = calcularXPAcumulada(nivel + 1);
+    
+    if (xp >= xpNecesaria) {
+      nivel++;
+      nivelesSubidos.push(nivel);
+    } else {
+      break;
+    }
+  }
 
   // 4. Si subió de nivel, actualizar
-  if (nivelNuevo > nivelActual) {
+  if (nivelesSubidos.length > 0) {
     await dbClient.query(`
       UPDATE jugador_pokemons
       SET nivel = $1
       WHERE id = $2
-    `, [nivelNuevo, jugador_pokemon_id]);
+    `, [nivel, jugador_pokemon_id]);
 
-    const nivelesSubidos = [];
-    for (let i = nivelActual + 1; i <= nivelNuevo; i++) {
-      nivelesSubidos.push(i);
-    }
+    const xpParaSiguiente = nivel < MAX_NIVEL ? calcularXPAcumulada(nivel + 1) : 0;
+    const xpEnNivelActual = xp - calcularXPAcumulada(nivel);
 
     return {
       subio_nivel: true,
-      nivel_anterior: nivelActual,
-      nivel_nuevo: nivelNuevo,
+      mensaje: `¡${apodo || pokemon_nombre} subió de nivel!`,
+      pokemon: apodo || pokemon_nombre,
+      nivel_anterior: nivelOriginal,
+      nivel_nuevo: nivel,
       niveles_subidos: nivelesSubidos,
-      xp_actual: xpActual,
-      xp_para_siguiente: calcularXPAcumulada(nivelNuevo + 1),
+      xp_actual: xp,
+      xp_en_nivel_actual: xpEnNivelActual,
+      xp_para_siguiente: xpParaSiguiente,
       pokemon_id: jugador_pokemon_id
     };
   }
 
   // 5. Si no subió, devolver info de progreso
-  const xpParaSiguiente = calcularXPAcumulada(nivelActual + 1);
-  const xpFaltante = xpParaSiguiente - xpActual;
+  const xpParaSiguiente = calcularXPAcumulada(nivel + 1);
+  const xpEnNivelActual = xp - calcularXPAcumulada(nivel);
+  const xpFaltante = xpParaSiguiente - xp;
 
   return {
     subio_nivel: false,
-    nivel: nivelActual,
-    xp_actual: xpActual,
+    pokemon: apodo || pokemon_nombre,
+    nivel: nivel,
+    xp_actual: xp,
+    xp_en_nivel_actual: xpEnNivelActual,
     xp_para_siguiente: xpParaSiguiente,
     xp_faltante: xpFaltante,
     pokemon_id: jugador_pokemon_id
@@ -100,78 +126,96 @@ async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
 // ==================== SUBIR NIVEL JUGADOR ====================
 
 async function verificarSubidaNivelJugador() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // 1. Obtener jugador
   const jugador = await dbClient.query(`
     SELECT id, nivel, xp
     FROM jugadores
     WHERE id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   if (jugador.rowCount === 0) {
     return { error: 'Jugador not found' };
   }
 
-  const { nivel: nivelActual, xp: xpActual } = jugador.rows[0];
+  let { nivel, xp } = jugador.rows[0];
+  const nivelOriginal = nivel;
 
   // 2. Verificar si puede subir de nivel
-  if (nivelActual >= MAX_NIVEL) {
+  if (nivel >= MAX_NIVEL) {
     return { 
       subio_nivel: false, 
-      mensaje: 'Jugador at max level',
-      nivel: nivelActual,
-      xp: xpActual
+      mensaje: `Jugador en nivel máximo (${MAX_NIVEL})`,
+      nivel: nivel,
+      xp: xp
     };
   }
 
   // 3. Calcular cuántos niveles sube
-  const xpAcumuladaActual = calcularXPAcumulada(nivelActual);
-  const nivelesQuePuedaSubir = Math.floor((xpActual - xpAcumuladaActual) / XP_POR_NIVEL);
-  const nivelNuevo = Math.min(nivelActual + nivelesQuePuedaSubir, MAX_NIVEL);
+  let nivelesSubidos = [];
+  
+  while (nivel < MAX_NIVEL) {
+    const xpNecesaria = calcularXPAcumulada(nivel + 1);
+    
+    if (xp >= xpNecesaria) {
+      nivel++;
+      nivelesSubidos.push(nivel);
+    } else {
+      break;
+    }
+  }
 
   // 4. Si subió de nivel, actualizar
-  if (nivelNuevo > nivelActual) {
+  if (nivelesSubidos.length > 0) {
     await dbClient.query(`
       UPDATE jugadores
       SET nivel = $1
       WHERE id = $2
-    `, [nivelNuevo, JUGADOR_ID]);
+    `, [nivel, jugadorId]);
 
-    const nivelesSubidos = [];
-    for (let i = nivelActual + 1; i <= nivelNuevo; i++) {
-      nivelesSubidos.push(i);
-    }
-
-    // Obtener nuevos slots desbloqueados
+    // Obtener slots desbloqueados
     const slotsInventario = await dbClient.query(`
       SELECT slots_disponibles FROM inventario_slots_config
       WHERE nivel_jugador = $1
-    `, [nivelNuevo]);
+    `, [nivel]);
 
     const slotsGranjas = await dbClient.query(`
       SELECT slots_disponibles FROM granjas_slots_config
       WHERE nivel_jugador = $1
-    `, [nivelNuevo]);
+    `, [nivel]);
+
+    const xpParaSiguiente = nivel < MAX_NIVEL ? calcularXPAcumulada(nivel + 1) : 0;
+    const xpEnNivelActual = xp - calcularXPAcumulada(nivel);
 
     return {
       subio_nivel: true,
-      nivel_anterior: nivelActual,
-      nivel_nuevo: nivelNuevo,
+      mensaje: '¡Subiste de nivel!',
+      nivel_anterior: nivelOriginal,
+      nivel_nuevo: nivel,
       niveles_subidos: nivelesSubidos,
-      xp_actual: xpActual,
-      xp_para_siguiente: calcularXPAcumulada(nivelNuevo + 1),
-      slots_inventario: slotsInventario.rows[0].slots_disponibles,
-      slots_granjas: slotsGranjas.rows[0].slots_disponibles
+      xp_actual: xp,
+      xp_en_nivel_actual: xpEnNivelActual,
+      xp_para_siguiente: xpParaSiguiente,
+      slots_inventario: slotsInventario.rows[0]?.slots_disponibles || 10,
+      slots_granjas: slotsGranjas.rows[0]?.slots_disponibles || 1
     };
   }
 
   // 5. Si no subió, devolver info de progreso
-  const xpParaSiguiente = calcularXPAcumulada(nivelActual + 1);
-  const xpFaltante = xpParaSiguiente - xpActual;
+  const xpParaSiguiente = calcularXPAcumulada(nivel + 1);
+  const xpEnNivelActual = xp - calcularXPAcumulada(nivel);
+  const xpFaltante = xpParaSiguiente - xp;
 
   return {
     subio_nivel: false,
-    nivel: nivelActual,
-    xp_actual: xpActual,
+    nivel: nivel,
+    xp_actual: xp,
+    xp_en_nivel_actual: xpEnNivelActual,
     xp_para_siguiente: xpParaSiguiente,
     xp_faltante: xpFaltante
   };
@@ -180,48 +224,62 @@ async function verificarSubidaNivelJugador() {
 // ==================== OBTENER INFO DE NIVEL ====================
 
 async function getInfoNivelPokemon(jugador_pokemon_id) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return null;
+  }
+
   const pokemon = await dbClient.query(`
     SELECT 
       jp.id,
       jp.nivel,
       jp.xp,
-      p.nombre as pokemon_nombre
+      p.nombre as pokemon_nombre,
+      jp.apodo
     FROM jugador_pokemons jp
     INNER JOIN pokemons p ON jp.pokemon_id = p.id
     WHERE jp.id = $1 AND jp.jugador_id = $2
-  `, [jugador_pokemon_id, JUGADOR_ID]);
+  `, [jugador_pokemon_id, jugadorId]);
 
   if (pokemon.rowCount === 0) {
     return null;
   }
 
-  const { nivel, xp, pokemon_nombre } = pokemon.rows[0];
+  const { nivel, xp, pokemon_nombre, apodo } = pokemon.rows[0];
 
-  const xpParaSiguiente = calcularXPAcumulada(nivel + 1);
   const xpAcumuladaActual = calcularXPAcumulada(nivel);
+  const xpParaSiguiente = calcularXPAcumulada(nivel + 1);
   const xpEnNivelActual = xp - xpAcumuladaActual;
-  const xpFaltante = Math.max(0, XP_POR_NIVEL - xpEnNivelActual);
+  const xpFaltante = nivel >= MAX_NIVEL ? 0 : xpParaSiguiente - xp;
   const porcentaje = nivel >= MAX_NIVEL ? 100 : ((xpEnNivelActual / XP_POR_NIVEL) * 100).toFixed(2);
 
   return {
     jugador_pokemon_id,
-    pokemon_nombre,
+    pokemon: apodo || pokemon_nombre,
     nivel,
-    xp_actual: xp,
+    xp_total: xp,
     xp_en_nivel_actual: xpEnNivelActual,
-    xp_para_siguiente: XP_POR_NIVEL,
-    xp_faltante: nivel >= MAX_NIVEL ? 0 : xpFaltante,
+    xp_para_subir: XP_POR_NIVEL,
+    xp_faltante: xpFaltante,
     porcentaje_progreso: parseFloat(porcentaje),
-    max_nivel: nivel >= MAX_NIVEL
+    max_nivel: nivel >= MAX_NIVEL,
+    progreso: `${xpEnNivelActual}/${XP_POR_NIVEL}`
   };
 }
 
 async function getInfoNivelJugador() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return null;
+  }
+
   const jugador = await dbClient.query(`
     SELECT nivel, xp
     FROM jugadores
     WHERE id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   if (jugador.rowCount === 0) {
     return null;
@@ -230,8 +288,9 @@ async function getInfoNivelJugador() {
   const { nivel, xp } = jugador.rows[0];
 
   const xpAcumuladaActual = calcularXPAcumulada(nivel);
+  const xpParaSiguiente = calcularXPAcumulada(nivel + 1);
   const xpEnNivelActual = xp - xpAcumuladaActual;
-  const xpFaltante = Math.max(0, XP_POR_NIVEL - xpEnNivelActual);
+  const xpFaltante = nivel >= MAX_NIVEL ? 0 : xpParaSiguiente - xp;
   const porcentaje = nivel >= MAX_NIVEL ? 100 : ((xpEnNivelActual / XP_POR_NIVEL) * 100).toFixed(2);
 
   // Obtener slots
@@ -247,14 +306,15 @@ async function getInfoNivelJugador() {
 
   return {
     nivel,
-    xp_actual: xp,
+    xp_total: xp,
     xp_en_nivel_actual: xpEnNivelActual,
-    xp_para_siguiente: XP_POR_NIVEL,
-    xp_faltante: nivel >= MAX_NIVEL ? 0 : xpFaltante,
+    xp_para_subir: XP_POR_NIVEL,
+    xp_faltante: xpFaltante,
     porcentaje_progreso: parseFloat(porcentaje),
     max_nivel: nivel >= MAX_NIVEL,
-    slots_inventario: slotsInventario.rows[0].slots_disponibles,
-    slots_granjas: slotsGranjas.rows[0].slots_disponibles
+    progreso: `${xpEnNivelActual}/${XP_POR_NIVEL}`,
+    slots_inventario: slotsInventario.rows[0]?.slots_disponibles || 10,
+    slots_granjas: slotsGranjas.rows[0]?.slots_disponibles || 1
   };
 }
 
@@ -263,6 +323,5 @@ module.exports = {
   verificarSubidaNivelJugador,
   getInfoNivelPokemon,
   getInfoNivelJugador,
-  calcularXPNecesaria,
   calcularXPAcumulada
 };

@@ -25,24 +25,24 @@ function getGeneracion(id) {
 
 // Mapeo de nombres de tipos de inglés a español
 const tipoMap = {
-  'normal': 'normal',
-  'fire': 'fuego',
-  'water': 'agua',
-  'grass': 'planta',
-  'electric': 'electrico',
-  'ice': 'hielo',
-  'fighting': 'lucha',
-  'poison': 'veneno',
-  'ground': 'tierra',
-  'flying':  'volador',
-  'psychic':  'psiquico',
-  'bug': 'bicho',
-  'rock': 'roca',
-  'ghost': 'fantasma',
-  'dragon': 'dragon',
-  'dark': 'siniestro',
-  'steel': 'acero',
-  'fairy': 'hada'
+  'normal': 'Normal',
+  'fire': 'Fuego',
+  'water': 'Agua',
+  'grass': 'Planta',
+  'electric': 'Eléctrico',
+  'ice': 'Hielo',
+  'fighting': 'Lucha',
+  'poison': 'Veneno',
+  'ground': 'Tierra',
+  'flying': 'Volador',
+  'psychic': 'Psíquico',
+  'bug': 'Bicho',
+  'rock': 'Roca',
+  'ghost': 'Fantasma',
+  'dragon': 'Dragón',
+  'dark': 'Siniestro',
+  'steel': 'Acero',
+  'fairy': 'Hada'
 };
 
 async function fetchPokemon(id) {

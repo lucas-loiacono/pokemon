@@ -8,10 +8,21 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-// Siempre usamos el jugador con id = 1
-const JUGADOR_ID = 1;
+// ==================== HELPER: Obtener ID del jugador actual ====================
+async function getJugadorId() {
+  const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+  return result.rows[0]?.id || null;
+}
+
+// ==================== JUGADOR ====================
 
 async function getJugador() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return null;
+  }
+  
   const result = await dbClient.query(`
     SELECT 
       j.id,
@@ -22,11 +33,18 @@ async function getJugador() {
     LEFT JOIN jugador_pokemons jp ON j.id = jp.jugador_id
     WHERE j.id = $1
     GROUP BY j.id
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
+  
   return result.rows[0];
 }
 
 async function getJugadorPokemons() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return [];
+  }
+  
   const result = await dbClient.query(`
     SELECT 
       jp.id as jugador_pokemon_id,
@@ -47,12 +65,18 @@ async function getJugadorPokemons() {
     WHERE jp.jugador_id = $1
     GROUP BY jp.id, p.id, p.pokedex_id, p.nombre, p.imagen_url, jp.nivel, jp.xp, jp.combates_ganados, jp.etapa_evolucion, jp.apodo
     ORDER BY jp.id
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
   
   return result.rows;
 }
 
 async function getJugadorInventario() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return [];
+  }
+  
   const result = await dbClient.query(`
     SELECT 
       f.id,
@@ -64,12 +88,18 @@ async function getJugadorInventario() {
     INNER JOIN frutas f ON jf.fruta_id = f.id
     WHERE jf.jugador_id = $1
     ORDER BY f.nombre
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
   
   return result.rows;
 }
 
 async function updateJugadorStats(nivel, xp) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return undefined;
+  }
+  
   const updates = [];
   const values = [];
   let paramCount = 1;
@@ -88,7 +118,7 @@ async function updateJugadorStats(nivel, xp) {
     return undefined;
   }
 
-  values.push(JUGADOR_ID);
+  values.push(jugadorId);
 
   const result = await dbClient.query(
     `UPDATE jugadores SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
@@ -102,12 +132,18 @@ async function updateJugadorStats(nivel, xp) {
 }
 
 async function setApodo(jugador_pokemon_id, apodo) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return undefined;
+  }
+  
   const result = await dbClient.query(
     `UPDATE jugador_pokemons 
      SET apodo = $1 
      WHERE id = $2 AND jugador_id = $3
      RETURNING *`,
-    [apodo, jugador_pokemon_id, JUGADOR_ID]
+    [apodo, jugador_pokemon_id, jugadorId]
   );
 
   if (result.rowCount === 0) {
@@ -116,9 +152,13 @@ async function setApodo(jugador_pokemon_id, apodo) {
   return result.rows[0];
 }
 
-// ==================== ELIMINAR POKÉMON ====================
-
 async function eliminarPokemon(jugador_pokemon_id) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+  
   // 1. Verificar que el Pokémon existe y pertenece al jugador
   const pokemonCheck = await dbClient.query(`
     SELECT 
@@ -129,7 +169,7 @@ async function eliminarPokemon(jugador_pokemon_id) {
     FROM jugador_pokemons jp
     INNER JOIN pokemons p ON jp.pokemon_id = p.id
     WHERE jp.id = $1 AND jp.jugador_id = $2
-  `, [jugador_pokemon_id, JUGADOR_ID]);
+  `, [jugador_pokemon_id, jugadorId]);
 
   if (pokemonCheck.rowCount === 0) {
     return { error: 'Pokemon not found' };

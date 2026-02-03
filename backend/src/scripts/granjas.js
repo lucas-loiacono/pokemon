@@ -8,12 +8,23 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-const JUGADOR_ID = 1;
 const FRUTA_ID = 1; // Siempre "Bayas verdes"
+
+// ==================== HELPER: Obtener ID del jugador actual ====================
+async function getJugadorId() {
+  const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+  return result.rows[0]?.id || null;
+}
 
 // ==================== GRANJAS DEL JUGADOR ====================
 
 async function getJugadorGranjas() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // 1. Obtener nivel del jugador y slots disponibles
   const config = await dbClient.query(`
     SELECT 
@@ -22,7 +33,11 @@ async function getJugadorGranjas() {
     FROM jugadores j
     INNER JOIN granjas_slots_config gsc ON j.nivel = gsc.nivel_jugador
     WHERE j.id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
+
+  if (config.rowCount === 0) {
+    return { error: 'Jugador configuration not found' };
+  }
 
   const { nivel, slots_disponibles } = config.rows[0];
 
@@ -61,7 +76,7 @@ async function getJugadorGranjas() {
     CROSS JOIN frutas f
     WHERE f.id = $2
     ORDER BY gn.granja_id
-  `, [JUGADOR_ID, FRUTA_ID, slots_disponibles]);
+  `, [jugadorId, FRUTA_ID, slots_disponibles]);
   
   return {
     nivel: nivel,
@@ -71,6 +86,12 @@ async function getJugadorGranjas() {
 }
 
 async function getGranjaDetalle(granja_id) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return null;
+  }
+
   // 1. Obtener slots disponibles
   const config = await dbClient.query(`
     SELECT 
@@ -79,7 +100,11 @@ async function getGranjaDetalle(granja_id) {
     FROM jugadores j
     INNER JOIN granjas_slots_config gsc ON j.nivel = gsc.nivel_jugador
     WHERE j.id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
+
+  if (config.rowCount === 0) {
+    return null;
+  }
 
   const { nivel, slots_disponibles } = config.rows[0];
 
@@ -118,7 +143,7 @@ async function getGranjaDetalle(granja_id) {
     FROM granjas_numeradas gn
     CROSS JOIN frutas f
     WHERE gn.granja_id = $2 AND f.id = $3
-  `, [JUGADOR_ID, granja_id, FRUTA_ID, slots_disponibles]);
+  `, [jugadorId, granja_id, FRUTA_ID, slots_disponibles]);
   
   if (result.rowCount === 0) {
     return null;
@@ -129,8 +154,15 @@ async function getGranjaDetalle(granja_id) {
 
 // ==================== RECOLECTAR ====================
 
+
 async function recolectarFrutas(granja_id) {
-  // 1. Verificar que la granja está desbloqueada
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
+  // 1. Verificar que la granja está desbloqueada y obtener info
   const granjaCheck = await dbClient.query(`
     WITH granjas_numeradas AS (
       SELECT 
@@ -147,30 +179,53 @@ async function recolectarFrutas(granja_id) {
       f.cantidad_produccion,
       f.nombre as fruta_nombre,
       f.tiempo_produccion_minutos,
-      gsc.slots_disponibles
+      gsc.slots_disponibles,
+      CASE 
+        WHEN gn.lista_en IS NULL THEN true
+        WHEN gn.lista_en <= NOW() THEN true
+        ELSE false
+      END as puede_recolectar,
+      CASE 
+        WHEN gn.lista_en > NOW() 
+        THEN EXTRACT(EPOCH FROM (gn.lista_en - NOW()))
+        ELSE 0
+      END as tiempo_restante_segundos
     FROM granjas_numeradas gn
     CROSS JOIN frutas f
     INNER JOIN jugadores j ON j.id = $1
     INNER JOIN granjas_slots_config gsc ON j.nivel = gsc.nivel_jugador
     WHERE gn.granja_id = $2 AND f.id = $3
-  `, [JUGADOR_ID, granja_id, FRUTA_ID]);
+  `, [jugadorId, granja_id, FRUTA_ID]);
 
   if (granjaCheck.rowCount === 0) {
     return { error: 'Granja not found' };
   }
 
-  const { numero_granja, lista_en, cantidad_produccion, fruta_nombre, tiempo_produccion_minutos, slots_disponibles } = granjaCheck.rows[0];
+  const { 
+    numero_granja, 
+    puede_recolectar, 
+    tiempo_restante_segundos,
+    cantidad_produccion, 
+    fruta_nombre, 
+    tiempo_produccion_minutos, 
+    slots_disponibles 
+  } = granjaCheck.rows[0];
 
   // 2. Verificar que está desbloqueada
   if (numero_granja > slots_disponibles) {
-    return { error: 'Granja not unlocked yet' };
+    return { 
+      error: 'Granja not unlocked yet',
+      mensaje: `Esta granja se desbloquea con más slots de granja`
+    };
   }
 
-  // 3. Verificar que pasó el tiempo (o es primera vez)
-  if (lista_en && new Date(lista_en) > new Date()) {
+  // 3. Verificar que puede recolectar (calculado en la DB)
+  if (!puede_recolectar) {
+    const minutosRestantes = Math.ceil(tiempo_restante_segundos / 60);
     return { 
       error: 'Frutas not ready yet',
-      tiempo_restante: Math.ceil((new Date(lista_en) - new Date()) / 1000)
+      mensaje: `Aún no puedes recolectar. Tiempo restante: ${minutosRestantes} minutos`,
+      tiempo_restante: Math.ceil(tiempo_restante_segundos)
     };
   }
 
@@ -180,9 +235,9 @@ async function recolectarFrutas(granja_id) {
     VALUES ($1, $2, $3)
     ON CONFLICT (jugador_id, fruta_id)
     DO UPDATE SET cantidad = jugador_frutas.cantidad + $3
-  `, [JUGADOR_ID, FRUTA_ID, cantidad_produccion]);
+  `, [jugadorId, FRUTA_ID, cantidad_produccion]);
 
-  // 5. Resetear timer (próxima recolección en 10 minutos)
+  // 5. Resetear timer (próxima recolección)
   await dbClient.query(`
     UPDATE granjas
     SET 
@@ -198,24 +253,41 @@ async function recolectarFrutas(granja_id) {
     UPDATE jugadores
     SET xp = xp + 20
     WHERE id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
+
+  // 7. Obtener cantidad total de frutas
+  const inventario = await dbClient.query(`
+    SELECT cantidad FROM jugador_frutas
+    WHERE jugador_id = $1 AND fruta_id = $2
+  `, [jugadorId, FRUTA_ID]);
 
   return {
+    recolectado: true,
     frutas_recolectadas: cantidad_produccion,
     fruta_nombre: fruta_nombre,
     fruta_id: FRUTA_ID,
-    proxima_recoleccion: tiempo_produccion_minutos,
-    xp_jugador: 20
+    total_frutas: inventario.rows[0].cantidad,
+    proxima_recoleccion_minutos: tiempo_produccion_minutos,
+    xp_ganada: 20,
+    mensaje: `¡Recolectaste ${cantidad_produccion} ${fruta_nombre}!`
   };
 }
+
+
 
 // ==================== CREAR 6 GRANJAS AL INICIO ====================
 
 async function crearGranjasIniciales() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // 1. Verificar si ya existen granjas
   const granjasActuales = await dbClient.query(`
     SELECT COUNT(*) as total FROM granjas WHERE jugador_id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   const totalActual = parseInt(granjasActuales.rows[0].total);
 
@@ -230,7 +302,7 @@ async function crearGranjasIniciales() {
     await dbClient.query(`
       INSERT INTO granjas (jugador_id, fruta_id, estado, plantada_en, lista_en)
       VALUES ($1, $2, 'lista', NOW(), NOW())
-    `, [JUGADOR_ID, FRUTA_ID]);
+    `, [jugadorId, FRUTA_ID]);
   }
 
   return {

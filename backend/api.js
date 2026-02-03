@@ -11,7 +11,7 @@ const {
   createPokemon,
   updatePokemon,
   deletePokemon
-} = require('./scripts/pokemons');
+} = require('./src/scripts/pokemons');
 
 const {
   getJugador,
@@ -20,7 +20,7 @@ const {
   updateJugadorStats,
   setApodo,
   eliminarPokemon  
-} = require('./scripts/jugadores');
+} = require('./src/scripts/jugadores');
 
 const {
   getAllHabitats,
@@ -28,58 +28,58 @@ const {
   getHabitatPokemons,
   asignarPokemonHabitat,
   quitarPokemonHabitat
-} = require('./scripts/habitats');
+} = require('./src/scripts/habitats');
 
 const {
   getAllZonas,
   getOneZona,
   getZonaPokemons,
   capturarPokemon
-} = require('./scripts/zonas');
+} = require('./src/scripts/zonas_captura');
 
 const {
   getJugadorGranjas,
   getGranjaDetalle,
   recolectarFrutas,
   crearGranjasIniciales
-} = require('./scripts/granjas');
+} = require('./src/scripts/granjas');
 
 const {
   getEquipo,
   agregarAlEquipo,
   quitarDelEquipo,
   reordenarEquipo
-} = require('./scripts/equipo');
+} = require('./src/scripts/equipo');
 
 const {
   getAllEntrenadores,
   getOneEntrenador,
-  iniciarCombate,
-  getHistorialBatallas
-} = require('./scripts/combate');
+  iniciarCombate
+} = require('./src/scripts/combate');
 
 const {
   alimentarPokemon
-} = require('./scripts/alimentar');
+} = require('./src/scripts/alimentar');
 
 const {
   verificarSubidaNivelPokemon,
   verificarSubidaNivelJugador,
   getInfoNivelPokemon,
   getInfoNivelJugador
-} = require('./scripts/niveles');
+} = require('./src/scripts/niveles');
 
 const {
   puedeEvolucionar,
   evolucionarPokemon
-} = require('./scripts/evoluciones');
-
+} = require('./src/scripts/evoluciones');
 
 const {
   inicializarJuego,
   reiniciarJuego,
   getStartersDisponibles
-} = require('./scripts/inicializacion');
+} = require('./src/scripts/inicializacion');
+
+// ... resto del código igual
 
 
 // Health route
@@ -197,7 +197,7 @@ app.put('/api/jugador/pokemons/:id/apodo', async (req, res) => {
   res.json(pokemon);
 });
 
-// ← AGREGAR ESTO:
+
 // Eliminar Pokémon del inventario
 app.delete('/api/jugador/pokemons/:id', async (req, res) => {
   const result = await eliminarPokemon(req.params.id);
@@ -331,11 +331,16 @@ app.post('/api/jugador/granjas/inicializar', async (req, res) => {
 // Get jugador's team
 app.get('/api/jugador/equipo', async (req, res) => {
   const equipo = await getEquipo();
+  
+  if (equipo.error) {
+    return res.status(404).json(equipo);
+  }
+  
   res.json(equipo);
 });
 
 // Add pokemon to team
-app.post('/api/jugador/equipo/agregar', async (req, res) => {
+app.post('/api/jugador/equipo', async (req, res) => {
   const { jugador_pokemon_id, posicion } = req.body;
 
   if (!jugador_pokemon_id) {
@@ -353,21 +358,27 @@ app.post('/api/jugador/equipo/agregar', async (req, res) => {
 
 // Remove pokemon from team
 app.delete('/api/jugador/equipo/:posicion', async (req, res) => {
-  const result = await quitarDelEquipo(req.params.posicion);
+  const posicion = parseInt(req.params.posicion);
+  
+  if (isNaN(posicion) || posicion < 1 || posicion > 5) {
+    return res.status(400).json({ error: 'Invalid position' });
+  }
+  
+  const result = await quitarDelEquipo(posicion);
 
-  if (!result) {
-    return res.status(404).json({ error: 'Pokemon not found in that position' });
+  if (result.error) {
+    return res.status(404).json(result);
   }
 
-  res.json({ message: 'Pokemon removed from team' });
+  res.json(result);
 });
 
 // Reorder team
 app.put('/api/jugador/equipo/reordenar', async (req, res) => {
-  const { nuevoOrden } = req.body;
+  const nuevoOrden = req.body;
 
-  if (!nuevoOrden || !Array.isArray(nuevoOrden)) {
-    return res.status(400).json({ error: 'Missing or invalid nuevoOrden' });
+  if (!Array.isArray(nuevoOrden) || nuevoOrden.length === 0) {
+    return res.status(400).json({ error: 'Missing or invalid nuevoOrden array' });
   }
 
   const result = await reordenarEquipo(nuevoOrden);
@@ -380,55 +391,58 @@ app.put('/api/jugador/equipo/reordenar', async (req, res) => {
 });
 
 
+// ==================== ALIMENTAR ====================
+
+app.post('/api/jugador/pokemons/:id/alimentar', async (req, res) => {
+  try {
+    const result = await alimentarPokemon(parseInt(req.params.id));
+
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==================== COMBATE ====================
 
 // Get all entrenadores
 app.get('/api/entrenadores', async (req, res) => {
-  const entrenadores = await getAllEntrenadores();
-  res.json(entrenadores);
+  try {
+    const entrenadores = await getAllEntrenadores();
+    res.json(entrenadores);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Get entrenador by id
 app.get('/api/entrenadores/:id', async (req, res) => {
-  const entrenador = await getOneEntrenador(req.params.id);
-  if (!entrenador) {
-    return res.status(404).json({ error: 'Entrenador not found' });
+  try {
+    const entrenador = await getOneEntrenador(parseInt(req.params.id));
+    if (!entrenador) {
+      return res.status(404).json({ error: 'Entrenador not found' });
+    }
+    res.json(entrenador);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  res.json(entrenador);
 });
 
-// Iniciar combate
-app.post('/api/combate/iniciar', async (req, res) => {
-  const { entrenador_id } = req.body;
-
-  if (!entrenador_id) {
-    return res.status(400).json({ error: 'Missing entrenador_id' });
+// Combatir contra un entrenador
+app.post('/api/entrenadores/:id/combatir', async (req, res) => {
+  try {
+    const result = await iniciarCombate(parseInt(req.params.id));
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  const result = await iniciarCombate(entrenador_id);
-
-  if (result.error) {
-    return res.status(400).json(result);
-  }
-
-  res.json(result);
-});
-
-// Get historial de batallas
-app.get('/api/combate/historial', async (req, res) => {
-  const historial = await getHistorialBatallas();
-  res.json(historial);
-});
-
-
-app.post('/api/jugador/pokemons/:id/alimentar', async (req, res) => {
-  const result = await alimentarPokemon(req.params.id);
-
-  if (result.error) {
-    return res.status(400).json(result);
-  }
-
-  res.json(result);
 });
 
 // ==================== NIVELES ====================

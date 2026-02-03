@@ -8,11 +8,21 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-const JUGADOR_ID = 1;
+// ==================== HELPER: Obtener ID del jugador actual ====================
+async function getJugadorId() {
+  const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+  return result.rows[0]?.id || null;
+}
 
 // ==================== VER EQUIPO ====================
 
 async function getEquipo() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   const result = await dbClient.query(`
     SELECT 
       ec.posicion,
@@ -35,20 +45,25 @@ async function getEquipo() {
     WHERE ec.jugador_id = $1
     GROUP BY ec.posicion, ec.jugador_pokemon_id, p.id, p.pokedex_id, p.nombre, p.imagen_url, jp.nivel, jp.xp, jp.combates_ganados, jp.etapa_evolucion, jp.apodo
     ORDER BY ec.posicion
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   return result.rows;
 }
 
-
 // ==================== AGREGAR AL EQUIPO ====================
 
 async function agregarAlEquipo(jugador_pokemon_id, posicion) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // 1. Verificar que el Pokémon existe y pertenece al jugador
   const pokemonCheck = await dbClient.query(`
     SELECT id FROM jugador_pokemons
     WHERE id = $1 AND jugador_id = $2
-  `, [jugador_pokemon_id, JUGADOR_ID]);
+  `, [jugador_pokemon_id, jugadorId]);
 
   if (pokemonCheck.rowCount === 0) {
     return { error: 'Pokemon not found' };
@@ -61,7 +76,10 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
   `, [jugador_pokemon_id]);
 
   if (enEquipo.rowCount > 0) {
-    return { error: 'Pokemon already in team' };
+    return { 
+      error: 'Pokemon already in team',
+      posicion_actual: enEquipo.rows[0].posicion
+    };
   }
 
   // 3. Si no se especifica posición, buscar la primera disponible
@@ -74,10 +92,13 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
       )
       ORDER BY n
       LIMIT 1
-    `, [JUGADOR_ID]);
+    `, [jugadorId]);
 
     if (posicionDisponible.rowCount === 0) {
-      return { error: 'Team is full' };
+      return { 
+        error: 'Team is full',
+        mensaje: 'El equipo está completo (5/5). Quita un Pokémon primero.'
+      };
     }
 
     posicion = posicionDisponible.rows[0].posicion;
@@ -87,70 +108,152 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
   const posicionOcupada = await dbClient.query(`
     SELECT jugador_pokemon_id FROM equipo_combate
     WHERE jugador_id = $1 AND posicion = $2
-  `, [JUGADOR_ID, posicion]);
+  `, [jugadorId, posicion]);
 
   if (posicionOcupada.rowCount > 0) {
-    return { error: 'Position already occupied' };
+    return { 
+      error: 'Position already occupied',
+      mensaje: `La posición ${posicion} ya está ocupada`
+    };
   }
 
   // 5. Agregar al equipo
-  const result = await dbClient.query(`
+  await dbClient.query(`
     INSERT INTO equipo_combate (jugador_id, jugador_pokemon_id, posicion)
     VALUES ($1, $2, $3)
-    RETURNING *
-  `, [JUGADOR_ID, jugador_pokemon_id, posicion]);
+  `, [jugadorId, jugador_pokemon_id, posicion]);
 
-  return result.rows[0];
+  // 6. Obtener info del Pokémon agregado
+  const pokemon = await dbClient.query(`
+    SELECT 
+      jp.id as jugador_pokemon_id,
+      p.id as pokemon_id,
+      p.pokedex_id,
+      p.nombre,
+      p.imagen_url,
+      jp.nivel,
+      jp.apodo,
+      ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
+    FROM jugador_pokemons jp
+    INNER JOIN pokemons p ON jp.pokemon_id = p.id
+    INNER JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
+    INNER JOIN tipos t ON pt.tipo_id = t.id
+    WHERE jp.id = $1
+    GROUP BY jp.id, p.id, p.pokedex_id, p.nombre, p.imagen_url, jp.nivel, jp.apodo
+  `, [jugador_pokemon_id]);
+
+  return {
+    mensaje: 'Pokemon agregado al equipo',
+    posicion: posicion,
+    pokemon: pokemon.rows[0]
+  };
 }
 
 // ==================== QUITAR DEL EQUIPO ====================
 
 async function quitarDelEquipo(posicion) {
-  const result = await dbClient.query(`
-    DELETE FROM equipo_combate
-    WHERE jugador_id = $1 AND posicion = $2
-    RETURNING *
-  `, [JUGADOR_ID, posicion]);
-
-  if (result.rowCount === 0) {
-    return null;
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
   }
 
-  return result.rows[0];
+  // Obtener info antes de eliminar
+  const pokemon = await dbClient.query(`
+    SELECT 
+      ec.jugador_pokemon_id,
+      p.nombre,
+      jp.apodo
+    FROM equipo_combate ec
+    INNER JOIN jugador_pokemons jp ON ec.jugador_pokemon_id = jp.id
+    INNER JOIN pokemons p ON jp.pokemon_id = p.id
+    WHERE ec.jugador_id = $1 AND ec.posicion = $2
+  `, [jugadorId, posicion]);
+
+  if (pokemon.rowCount === 0) {
+    return { 
+      error: 'Position empty',
+      mensaje: `No hay ningún Pokémon en la posición ${posicion}`
+    };
+  }
+
+  const { nombre, apodo } = pokemon.rows[0];
+
+  // Eliminar del equipo
+  await dbClient.query(`
+    DELETE FROM equipo_combate
+    WHERE jugador_id = $1 AND posicion = $2
+  `, [jugadorId, posicion]);
+
+  return {
+    mensaje: `${apodo || nombre} fue removido del equipo`,
+    posicion: posicion
+  };
 }
 
 // ==================== REORDENAR EQUIPO ====================
 
 async function reordenarEquipo(nuevoOrden) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // nuevoOrden es un array: [{ jugador_pokemon_id: 1, posicion: 1 }, ...]
 
-  // 1. Validar que hay exactamente los Pokémon del equipo
+  // 1. Validar formato
+  if (!Array.isArray(nuevoOrden) || nuevoOrden.length === 0) {
+    return { error: 'Invalid format' };
+  }
+
+  // 2. Validar que hay exactamente los Pokémon del equipo
   const equipoActual = await dbClient.query(`
     SELECT jugador_pokemon_id FROM equipo_combate
     WHERE jugador_id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
-  const idsActuales = equipoActual.rows.map(r => r.jugador_pokemon_id).sort();
-  const idsNuevos = nuevoOrden.map(p => p.jugador_pokemon_id).sort();
+  const idsActuales = equipoActual.rows.map(r => r.jugador_pokemon_id).sort((a, b) => a - b);
+  const idsNuevos = nuevoOrden.map(p => p.jugador_pokemon_id).sort((a, b) => a - b);
 
   if (JSON.stringify(idsActuales) !== JSON.stringify(idsNuevos)) {
-    return { error: 'Invalid team configuration' };
+    return { 
+      error: 'Invalid team configuration',
+      mensaje: 'Los Pokémon en el nuevo orden no coinciden con el equipo actual'
+    };
   }
 
-  // 2. Eliminar todas las posiciones actuales
+  // 3. Validar posiciones (1-5, sin duplicados)
+  const posiciones = nuevoOrden.map(p => p.posicion);
+  const posicionesUnicas = [...new Set(posiciones)];
+  
+  if (posicionesUnicas.length !== nuevoOrden.length) {
+    return { error: 'Duplicate positions' };
+  }
+
+  for (const pos of posiciones) {
+    if (pos < 1 || pos > 5) {
+      return { error: 'Invalid position', mensaje: 'Las posiciones deben estar entre 1 y 5' };
+    }
+  }
+
+  // 4. Eliminar todas las posiciones actuales
   await dbClient.query(`
     DELETE FROM equipo_combate WHERE jugador_id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
-  // 3. Insertar el nuevo orden
+  // 5. Insertar el nuevo orden
   for (const pokemon of nuevoOrden) {
     await dbClient.query(`
       INSERT INTO equipo_combate (jugador_id, jugador_pokemon_id, posicion)
       VALUES ($1, $2, $3)
-    `, [JUGADOR_ID, pokemon.jugador_pokemon_id, pokemon.posicion]);
+    `, [jugadorId, pokemon.jugador_pokemon_id, pokemon.posicion]);
   }
 
-  return { message: 'Team reordered successfully' };
+  return { 
+    mensaje: 'Equipo reordenado exitosamente',
+    nuevo_orden: nuevoOrden
+  };
 }
 
 module.exports = {

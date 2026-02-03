@@ -134,15 +134,16 @@ INSERT INTO habitat_tipos_aceptados (habitat_id, tipo_nombre) VALUES
 (5, 'Tierra'), (5, 'Fuego'), (5, 'Fantasma'),
 (6, 'Hielo'), (6, 'Dragón');
 
+
 -- ==================== 3. ZONAS DE CAPTURA ====================
 
-INSERT INTO zonas (id, nombre, tipo_principal, nivel_requerido, descripcion, imagen_url) VALUES
-(1, 'Pradera', 'Normal', 1, 'Campos abiertos donde habitan Pokémon normales, eléctricos y psíquicos', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturallanura.png'),
-(2, 'Bosque', 'Planta', 1, 'Bosque frondoso habitado por Pokémon de planta, bicho, veneno y hada', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturabosque.png'),
-(3, 'Playa', 'Agua', 1, 'Costa marina donde encuentras Pokémon de agua y voladores', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturaplaya.png'),
-(4, 'Cueva', 'Roca', 1, 'Cueva oscura con Pokémon de roca, lucha, acero y siniestro', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturacueva.png'),
-(5, 'Desierto', 'Tierra', 1, 'Desierto árido habitado por Pokémon de tierra, fuego y fantasma', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturadesierto.png'),
-(6, 'Nieve', 'Hielo', 1, 'Montañas nevadas donde viven Pokémon de hielo y dragón', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturahielo.png');
+INSERT INTO zonas (id, nombre, descripcion, imagen_url) VALUES
+(1, 'Pradera', 'Campos abiertos donde habitan Pokémon normales, eléctricos y psíquicos', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturallanura.png'),
+(2, 'Bosque', 'Bosque frondoso habitado por Pokémon de planta, bicho, veneno y hada', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturabosque.png'),
+(3, 'Playa', 'Costa marina donde encuentras Pokémon de agua y voladores', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturaplaya.png'),
+(4, 'Cueva', 'Cueva oscura con Pokémon de roca, lucha, acero y siniestro', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturacueva.png'),
+(5, 'Desierto', 'Desierto árido habitado por Pokémon de tierra, fuego y fantasma', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturadesierto.png'),
+(6, 'Nieve', 'Montañas nevadas donde viven Pokémon de hielo y dragón', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturahielo.png');
 
 SELECT setval('zonas_id_seq', 6, true);
 

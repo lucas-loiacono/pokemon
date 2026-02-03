@@ -21,7 +21,7 @@ CREATE TABLE pokemon_tipos (
   pokemon_id INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
   tipo_id INT NOT NULL REFERENCES tipos(id) ON DELETE CASCADE,
   orden INT NOT NULL CHECK (orden IN (1, 2)),
-  UNIQUE (pokemon_id, orden)
+  UNIQUE (pokemon_id, tipo_id)
 );
 
 -- Tabla de efectividad entre tipos
@@ -66,8 +66,6 @@ CREATE TABLE habitat_tipos_aceptados (
 CREATE TABLE zonas (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
-  tipo_principal VARCHAR(50) NOT NULL REFERENCES tipos(nombre),
-  nivel_requerido INT NOT NULL DEFAULT 1,
   descripcion TEXT,
   imagen_url TEXT
 );

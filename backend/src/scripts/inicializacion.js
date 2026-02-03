@@ -83,7 +83,7 @@ async function inicializarJuego(pokemon_starter_id) {
     for (let i = 0; i < 6; i++) {
       const result = await dbClient.query(`
         INSERT INTO granjas (jugador_id, fruta_id, estado, plantada_en, lista_en)
-        VALUES ($1, $2, 'lista', NOW(), NOW())
+          VALUES ($1, $2, 'lista', NOW(), NOW() - INTERVAL '3 hours')
         RETURNING id
       `, [jugador_id, FRUTA_ID]);
 

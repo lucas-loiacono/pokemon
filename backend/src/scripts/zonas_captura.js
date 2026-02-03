@@ -8,7 +8,11 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-const JUGADOR_ID = 1;
+// ==================== HELPER: Obtener ID del jugador actual ====================
+async function getJugadorId() {
+  const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+  return result.rows[0]?.id || null;
+}
 
 // ==================== ZONAS ====================
 
@@ -17,17 +21,20 @@ async function getAllZonas() {
     SELECT 
       z.id,
       z.nombre,
-      z.tipo_principal,
-      z.nivel_requerido,
       z.descripcion,
       z.imagen_url,
       ARRAY_AGG(DISTINCT t.nombre ORDER BY t.nombre) as tipos,
-      COUNT(DISTINCT p.id) as total_pokemons
+      (
+        SELECT COUNT(DISTINCT p.id)
+        FROM pokemons p
+        INNER JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
+        WHERE pt.tipo_id IN (
+          SELECT tipo_id FROM zona_tipos WHERE zona_id = z.id
+        )
+      ) as total_pokemons
     FROM zonas z
     INNER JOIN zona_tipos zt ON z.id = zt.zona_id
     INNER JOIN tipos t ON zt.tipo_id = t.id
-    INNER JOIN pokemon_tipos pt ON t.id = pt.tipo_id
-    INNER JOIN pokemons p ON pt.pokemon_id = p.id
     GROUP BY z.id
     ORDER BY z.id
   `);
@@ -39,8 +46,6 @@ async function getOneZona(id) {
     SELECT 
       z.id,
       z.nombre,
-      z.tipo_principal,
-      z.nivel_requerido,
       z.descripcion,
       z.imagen_url,
       ARRAY_AGG(DISTINCT t.nombre ORDER BY t.nombre) as tipos
@@ -77,6 +82,12 @@ async function getZonaPokemons(zona_id) {
 // ==================== CAPTURAS ====================
 
 async function capturarPokemon(zona_id) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+  
   // 1. Verificar que la zona existe
   const zona = await getOneZona(zona_id);
   if (!zona) {
@@ -91,12 +102,19 @@ async function capturarPokemon(zona_id) {
     FROM jugadores j
     INNER JOIN inventario_slots_config isc ON j.nivel = isc.nivel_jugador
     WHERE j.id = $1
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
+
+  if (inventarioCheck.rowCount === 0) {
+    return { error: 'Jugador configuration not found' };
+  }
 
   const { pokemons_actuales, slots_disponibles } = inventarioCheck.rows[0];
 
   if (parseInt(pokemons_actuales) >= slots_disponibles) {
-    return { error: 'Inventory is full' };
+    return { 
+      error: 'Inventory is full',
+      mensaje: `Inventario lleno (${pokemons_actuales}/${slots_disponibles}). Libera espacio antes de capturar.`
+    };
   }
 
   // 3. Obtener Pokémon aleatorio de los TIPOS de la zona
@@ -121,7 +139,7 @@ async function capturarPokemon(zona_id) {
     INSERT INTO jugador_pokemons (jugador_id, pokemon_id, nivel, xp, combates_ganados, etapa_evolucion)
     VALUES ($1, $2, 1, 0, 0, 1)
     RETURNING *
-  `, [JUGADOR_ID, pokemon_id]);
+  `, [jugadorId, pokemon_id]);
 
   // 5. Obtener datos completos del Pokémon capturado
   const pokemonCapturado = await dbClient.query(`

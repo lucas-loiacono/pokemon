@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { verificarSubidaNivelPokemon, verificarSubidaNivelJugador } = require('./niveles');
 
 const dbClient = new Pool({
   user: 'postgres',
@@ -8,18 +9,28 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-const JUGADOR_ID = 1;
+// ==================== HELPER: Obtener ID del jugador actual ====================
+async function getJugadorId() {
+  const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+  return result.rows[0]?.id || null;
+}
 
 // ==================== ENTRENADORES ====================
 
 async function getAllEntrenadores() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // Obtener el nivel más alto desbloqueado (basado en victorias)
   const maxNivelDesbloqueado = await dbClient.query(`
     SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
     FROM batallas b
     INNER JOIN entrenadores e ON b.entrenador_id = e.id
     WHERE b.jugador_id = $1 AND b.resultado = 'victoria'
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   const nivelDesbloqueado = maxNivelDesbloqueado.rows[0].siguiente_nivel;
 
@@ -50,19 +61,25 @@ async function getAllEntrenadores() {
     LEFT JOIN entrenador_pokemons ep ON e.id = ep.entrenador_id
     GROUP BY e.id
     ORDER BY e.nivel, e.id
-  `, [JUGADOR_ID, nivelDesbloqueado]);
+  `, [jugadorId, nivelDesbloqueado]);
 
   return result.rows;
 }
 
 async function getOneEntrenador(id) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // Verificar si está desbloqueado
   const maxNivelDesbloqueado = await dbClient.query(`
     SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
     FROM batallas b
     INNER JOIN entrenadores e ON b.entrenador_id = e.id
     WHERE b.jugador_id = $1 AND b.resultado = 'victoria'
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   const nivelDesbloqueado = maxNivelDesbloqueado.rows[0].siguiente_nivel;
 
@@ -130,26 +147,37 @@ function calcularMultiplicador(tiposAtacante, tiposDefensor, efectividades) {
 }
 
 async function iniciarCombate(entrenador_id) {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   // 1. Verificar que el entrenador está desbloqueado
   const maxNivelDesbloqueado = await dbClient.query(`
     SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
     FROM batallas b
     INNER JOIN entrenadores e ON b.entrenador_id = e.id
     WHERE b.jugador_id = $1 AND b.resultado = 'victoria'
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   const nivelDesbloqueado = maxNivelDesbloqueado.rows[0].siguiente_nivel;
 
   const entrenadorCheck = await dbClient.query(`
-    SELECT nivel FROM entrenadores WHERE id = $1
+    SELECT nivel, nombre FROM entrenadores WHERE id = $1
   `, [entrenador_id]);
 
   if (entrenadorCheck.rowCount === 0) {
     return { error: 'Entrenador no encontrado' };
   }
 
-  if (entrenadorCheck.rows[0].nivel > nivelDesbloqueado) {
-    return { error: 'Entrenador no desbloqueado' };
+  const { nivel: nivelEntrenador, nombre: nombreEntrenador } = entrenadorCheck.rows[0];
+
+  if (nivelEntrenador > nivelDesbloqueado) {
+    return { 
+      error: 'Entrenador no desbloqueado',
+      mensaje: `Debes derrotar al entrenador nivel ${nivelDesbloqueado - 1} primero`
+    };
   }
 
   // 2. Obtener equipo del jugador
@@ -160,6 +188,7 @@ async function iniciarCombate(entrenador_id) {
       jp.nivel,
       p.id as pokemon_id,
       p.nombre as pokemon_nombre,
+      jp.apodo,
       ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
     FROM equipo_combate ec
     INNER JOIN jugador_pokemons jp ON ec.jugador_pokemon_id = jp.id
@@ -167,12 +196,15 @@ async function iniciarCombate(entrenador_id) {
     INNER JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
     INNER JOIN tipos t ON pt.tipo_id = t.id
     WHERE ec.jugador_id = $1
-    GROUP BY ec.posicion, jp.id, jp.nivel, p.id, p.nombre
+    GROUP BY ec.posicion, jp.id, jp.nivel, p.id, p.nombre, jp.apodo
     ORDER BY ec.posicion
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   if (equipoJugador.rowCount === 0) {
-    return { error: 'No hay Pokémon en el equipo' };
+    return { 
+      error: 'No hay Pokémon en el equipo',
+      mensaje: 'Debes tener al menos 1 Pokémon en el equipo para combatir'
+    };
   }
 
   // 3. Obtener equipo del entrenador
@@ -247,14 +279,16 @@ async function iniciarCombate(entrenador_id) {
     resultadosCombates.push({
       posicion: i + 1,
       ganador: ganador,
-      pokemon_jugador: pokemonJugador.pokemon_nombre,
+      pokemon_jugador: pokemonJugador.apodo || pokemonJugador.pokemon_nombre,
       pokemon_enemigo: pokemonEnemigo.pokemon_nombre,
       nivel_jugador: pokemonJugador.nivel,
       nivel_enemigo: pokemonEnemigo.nivel,
-      poder_jugador: poderJugador.toFixed(2),
-      poder_enemigo: poderEnemigo.toFixed(2),
-      multiplicador_jugador: multiplicadorJugador.toFixed(2),
-      multiplicador_enemigo: multiplicadorEnemigo.toFixed(2)
+      tipos_jugador: pokemonJugador.tipos,
+      tipos_enemigo: pokemonEnemigo.tipos,
+      poder_jugador: parseFloat(poderJugador.toFixed(2)),
+      poder_enemigo: parseFloat(poderEnemigo.toFixed(2)),
+      multiplicador_jugador: parseFloat(multiplicadorJugador.toFixed(2)),
+      multiplicador_enemigo: parseFloat(multiplicadorEnemigo.toFixed(2))
     });
   }
 
@@ -290,7 +324,7 @@ async function iniciarCombate(entrenador_id) {
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING *
   `, [
-    JUGADOR_ID,
+    jugadorId,
     entrenador_id,
     resultado,
     resultadosCombates[0]?.ganador || null,
@@ -308,9 +342,11 @@ async function iniciarCombate(entrenador_id) {
     UPDATE jugadores
     SET xp = xp + $1
     WHERE id = $2
-  `, [xpJugador, JUGADOR_ID]);
+  `, [xpJugador, jugadorId]);
 
-  // 10. Dar XP a TODOS los Pokémon del equipo (ganen o pierdan)
+  // 10. Dar XP a TODOS los Pokémon del equipo
+  const pokemonsActualizados = [];
+  
   for (let i = 0; i < equipoJugador.rowCount; i++) {
     const pokemon = equipoJugador.rows[i];
     
@@ -319,6 +355,16 @@ async function iniciarCombate(entrenador_id) {
       SET xp = xp + $1
       WHERE id = $2
     `, [xpPokemon, pokemon.jugador_pokemon_id]);
+
+    // Verificar subida de nivel
+    const nivelResultado = await verificarSubidaNivelPokemon(pokemon.jugador_pokemon_id);
+    
+    pokemonsActualizados.push({
+      pokemon: pokemon.apodo || pokemon.pokemon_nombre,
+      xp_ganada: xpPokemon,
+      subio_nivel: nivelResultado.subio_nivel || false,
+      niveles_subidos: nivelResultado.niveles_subidos || []
+    });
   }
 
   // 11. Marcar combates ganados solo para los que ganaron su duelo
@@ -334,21 +380,37 @@ async function iniciarCombate(entrenador_id) {
     }
   }
 
+  // 12. Verificar subida de nivel del jugador
+  const jugadorNivel = await verificarSubidaNivelJugador();
+
   return {
     batalla_id: batalla.rows[0].id,
     resultado: resultado,
+    mensaje: resultado === 'victoria' 
+      ? `¡Derrotaste a ${nombreEntrenador}!`
+      : `${nombreEntrenador} te ha derrotado`,
+    entrenador: nombreEntrenador,
     combates: resultadosCombates,
     victorias_jugador: victoriasJugador,
     victorias_enemigo: victoriasEnemigo,
     xp_jugador: xpJugador,
     xp_pokemon: xpPokemon,
-    total_pokemons: equipoJugador.rowCount
+    total_pokemons: equipoJugador.rowCount,
+    pokemons_actualizados: pokemonsActualizados,
+    jugador_subio_nivel: jugadorNivel.subio_nivel || false,
+    jugador_niveles_subidos: jugadorNivel.niveles_subidos || []
   };
 }
 
 // ==================== HISTORIAL ====================
 
 async function getHistorialBatallas() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador not found' };
+  }
+
   const result = await dbClient.query(`
     SELECT 
       b.id,
@@ -363,7 +425,7 @@ async function getHistorialBatallas() {
     INNER JOIN entrenadores e ON b.entrenador_id = e.id
     WHERE b.jugador_id = $1
     ORDER BY b.id DESC
-  `, [JUGADOR_ID]);
+  `, [jugadorId]);
 
   return result.rows;
 }
