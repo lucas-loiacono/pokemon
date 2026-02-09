@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+
+    <title>Pokémon Rancher</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link href="https://unpkg.com/nes.css/css/nes.min.css" rel="stylesheet" />
+    
+    <style>
+        :root {
+            --azul-poke: #020c69;
+            --fondo: linear-gradient(180deg, #b2fefa 0%, #ffffff 100%);
+        }
+
+        body {
+            font-family: 'Press Start 2P';
+            background: var(--fondo);
+            min-height: 100vh;
+            color: #333;
+            font-size: 12px; 
+        }
+
+        nav { display: none; }
+        .page { display: none; }
+        #view-home { display: block; }
+
+        #granja:target ~ #view-home,
+        #habitats:target ~ #view-home,
+        #capturar:target ~ #view-home,
+        #captura-escenario:target ~ #view-home,
+        #captura-resultado:target ~ #view-home,
+        #combates:target ~ #view-home,
+        #equipo:target ~ #view-home,
+        #caja:target ~ #view-home,
+        #habitat-detalle:target ~ #view-home,
+        #poke-interaccion:target ~ #view-home {
+            display: none !important;
+        }
+
+        #granja:target ~ nav,
+        #habitats:target ~ nav,
+        #capturar:target ~ nav,
+        #captura-escenario:target ~ nav,
+        #captura-resultado:target ~ nav,
+        #combates:target ~ nav,
+        #equipo:target ~ nav,
+        #caja:target ~ nav,
+        #habitat-detalle:target ~ nav,
+        #poke-interaccion:target ~ nav {
+            display: flex;
+        }
+
+        #granja:target ~ #view-granja { display: block; }
+        #habitats:target ~ #view-habitats { display: block; }
+        #capturar:target ~ #view-capturar { display: block; }
+        #combates:target ~ #view-combates { display: block; }
+        #equipo:target ~ #view-equipo { display: block; }
+        #caja:target ~ #view-caja { display: block; }
+
+        #captura-escenario:target ~ #view-captura-escenario { display: block; }
+        #captura-resultado:target ~ #view-captura-resultado { display: block; }
+        #habitat-detalle:target ~ #view-habitat-detalle { display: block; }
+        #poke-interaccion:target ~ #view-poke-interaccion { display: block; }
+
+        nav {
+            background: white;
+            padding: 15px;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            text-decoration: none;
+            color: #555;
+            font-size: 0.7rem; 
+            padding: 8px 12px;
+            text-transform: uppercase;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+        .nav-btn:hover { color: var(--azul-poke); transform: translateY(-2px); }
+
+        .page {
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            padding-bottom: 100px;
+        }
+        h1, h2, h3 { margin-bottom: 20px; line-height: 1.5; }
+
+        .logo-db-container { margin: 50px auto; text-align: center; max-width: 500px; }
+        .logo-img { width: 100%; max-height: 200px; object-fit: contain; }
+
+        .menu-inicio {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }      
+
+        .nes-btn.inicio:hover { background: var(--azul-poke); color: white; margin-top: -2px; margin-bottom: 2px;}
+
+        .resources-hud {
+            background: #fff;
+            padding: 10px;
+            border: 4px solid #333;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .gen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gen-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative; 
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .gen-card:hover { border-color: var(--azul-poke); }
+        .farm-img { width: 100%; height: 100px; object-fit: contain; margin-bottom: 10px; }
+
+        .gen-card.locked { background: #e0e0e0; border-color: #999; pointer-events: none; }
+        .gen-card.locked::after {
+            content: "🔒 Nivel " attr(data-req);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #333; color: white; padding: 5px; font-size: 0.6rem;
+        }
+        .gen-card.locked .farm-img { opacity: 0.3; filter: grayscale(100%); }
+        .nes-btn.cooldown { background: #7f8c8d; box-shadow: 0 4px 0 #555; cursor: not-allowed; }
+
+        .zone-img { width: 100%; height: 100px; object-fit: cover;  }
+        .zone-body { padding: 10px; }
+
+        .scene-bg { width: 100%; height: 100%; object-fit: cover; }
+        .scene-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .radio-group { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+        .radio-group input { display: none; }
+        .radio-label {
+            padding: 10px; border: 4px solid #ccc; cursor: pointer; background: #fff;
+        }
+        .radio-group input:checked + .radio-label { border-color: var(--azul-poke); background: #e3f2fd; }
+
+        .habitat-slots {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            max-width: 600px; margin: -40px auto 20px; position: relative; z-index: 10;
+        }
+
+        .poke-slot {
+            background: white; border: 4px solid #333; padding: 5px; cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .poke-slot:hover { border-color: rgb(0, 38, 255); }
+        .poke-slot.empty { border-style: dashed; border-color: #999; color: #999; display: flex; align-items: center; justify-content: center; height: 100px; }
+
+        .box-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px; background: #333; padding: 10px; border: 4px solid #000;
+        }
+        .box-item { background: white; width:"80"; padding: 5px; font-size: 0.6rem; border: 2px solid #999; }
+
+
+    </style>
+</head>
+<body>
+    <div id="home"></div>
+    <div id="granja"></div>
+    <div id="habitats"></div>
+    <div id="habitat-detalle"></div>
+    <div id="poke-interaccion"></div>
+    <div id="capturar"></div>
+    <div id="captura-escenario"></div>
+    <div id="captura-resultado"></div>
+    <div id="combates"></div>
+    <div id="equipo"></div>
+    <div id="caja"></div>
+
+    <nav>
+        <a href="#granja" class="nav-btn">Granja</a>
+        <a href="#habitats" class="nav-btn">Habitats</a>
+        <a href="#capturar" class="nav-btn">Capturar</a>
+        <a href="#combates" class="nav-btn">Combates</a>
+        <a href="#equipo" class="nav-btn">Equipo</a>
+        <a href="#caja" class="nav-btn">Caja</a>
+        <a href="#home" class="nav-btn" style="color: red;">Volver</a>
+    </nav>
+
+    <section id="view-home">
+        <div class="logo-db-container">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg" 
+                 alt="Logo Pokémon Rancher" class="logo-img">
+        </div>
+        <div class="menu-inicio">
+            <a href="#granja" class="nes-btn inicio">GRANJA</a>
+            <a href="#habitats" class="nes-btn inicio">HABITATS</a>
+            <a href="#capturar" class="nes-btn inicio">CAPTURAR</a>
+            <a href="#combates" class="nes-btn inicio">COMBATES</a>
+            <a href="#equipo" class="nes-btn inicio">EQUIPO</a>
+            <a href="#caja" class="nes-btn inicio">CAJA</a>
+        </div>
+    </section>
+
+    <section id="view-granja" class="page">
+        <div class="resources-hud">
+            <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" style="width:20px;">
+            <span>Bayas: 120</span> 
+        </div>
+
+        <h1>Mis Parcelas</h1>
+        <div class="gen-grid">
+            <div class="gen-card nes-container is-rounded">
+                <h3>Parcela 1</h3>
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" class="farm-img">  
+                <form action="recolectar.php" method="POST">
+                    <input type="hidden" name="parcela_id" value="1">
+                    <button class="nes-btn is-warning">RECOLECTAR (+20)</button>
+                </form>
+            </div>
+            
+            <div class="gen-card nes-container is-rounded">
+                <h3>Parcela 2</h3>
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" class="farm-img">
+                <button class="nes-btn is-disabled" disabled>Esperando</button>
+            </div>
+
+            <div class="gen-card locked" data-req="5">
+                <h3>Parcela 3</h3>
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" class="farm-img">
+                <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
+            </div>
+            <div class="gen-card locked" data-req="10">
+                <h3>Parcela 4</h3>
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" class="farm-img">
+                <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
+            </div>
+            <div class="gen-card locked" data-req="15">
+                <h3>Parcela 5</h3>
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" class="farm-img">
+                <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
+            </div>
+            <div class="gen-card locked" data-req="20">
+                <h3>Parcela 6</h3>
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" class="farm-img">
+                <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
+            </div>
+        </div>
+    </section>
+
+
+    <section id="view-habitats" class="page">
+        <h1>Gestionar Hábitats</h1>
+        <p>Visita a tus Pokémon y entrénalos.</p>
+        <div class="gen-grid">
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/landscape-with-mountains_23-2148283526.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Pradera (3/6)</h3> 
+                    <a href="#habitat-detalle" class="nes-btn";>Entrar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Desierto (0/6)</h3> 
+                    <a href="#habitat-detalle" class="nes-btn">Entrar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Nieve (0/6)</h3> 
+                    <a href="#habitat-detalle" class="nes-btn">Entrar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Playa (0/6)</h3> 
+                    <a href="#habitat-detalle" class="nes-btn">Entrar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Bosque (0/6)</h3> 
+                    <a href="#habitat-detalle" class="nes-btn">Entrar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Cueva (0/6)</h3> 
+                    <a href="#habitat-detalle" class="nes-btn">Entrar</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="view-habitat-detalle" class="page">
+        <h2>Pradera</h2>
+        <div class="nes-container is-rounded" style="height: 200px;">
+            <img src="https://img.freepik.com/free-vector/landscape-with-mountains_23-2148283526.jpg" class="scene-bg">
+        </div>
+
+        <div class="habitat-slots">
+            <a href="#poke-interaccion" class="poke-slot" style="text-decoration:none; color:inherit;">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" width="50">
+                <div>Bulbasaur</div>
+                <div style="color:var(--azul-poke);">Nvl 15</div>
+            </a>
+            <a href="#poke-interaccion" class="poke-slot" style="text-decoration:none; color:inherit;">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" width="50">
+                <div>Charmander</div>
+                <div style="color:var(--azul-poke);">Nvl 12</div>
+            </a>
+            <div class="poke-slot">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" width="50">
+                <div>Squirtle</div>
+                <div style="color:var(--azul-poke);">Nvl 5</div>
+            </div>
+            <div class="poke-slot empty">+ Añadir</div>
+            <div class="poke-slot empty">+ Añadir</div>
+            <div class="poke-slot empty">+ Añadir</div>
+        </div>
+        <a href="#habitats" class="nav-btn" style="display:inline-block; margin-top:20px;">&larr; Volver</a>
+    </section>
+
+    <section id="view-poke-interaccion" class="page">
+        <div style="background:white; padding:20px; border:4px solid #420c69; max-width:500px; margin:auto;">
+            <div style="display:flex; gap:20px; align-items:center;">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png" width="120">
+                <div style="text-align:left;">
+                    <h2 style="margin:0;">Bulbasaur</h2>
+                    <h3 style="color:var(--azul-poke);">Nivel 15</h3>
+                    <p style="margin-bottom:5px;">XP: 80/100</p>
+                    <progress class="nes-progress is-primary" value="80" max="100"></progress>
+                </div>
+            </div>
+            <hr style="border:2px solid #eee; margin:20px 0;">
+            <h3>Entrenamiento</h3>
+            <p>Tienes: <strong>120 Bayas</strong></p>
+            <form action="#" method="POST">
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="bayas" value="1" checked>
+                        <span class="radio-label">Dar 1 Baya (+50 XP)</span>
+                    </label>
+                </div>
+                <button class="nes-btn is-success" >ENTRENAR</button>
+            </form>
+            <br>
+            <a href="#habitat-detalle" style="color:#666;">Cancelar</a>
+        </div>
+    </section>
+
+    <section id="view-capturar" class="page">
+        <h1>Explorar Zona</h1>
+        <div class="gen-grid">
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/landscape-with-mountains_23-2148283526.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Pradera</h3>
+                    <a href="#captura-escenario" class="nes-btn">Buscar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Desierto</h3>
+                    <a href="#captura-escenario" class="nes-btn">Buscar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Bosque</h3>
+                    <a href="#captura-escenario" class="nes-btn">Buscar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Nieve</h3>
+                    <a href="#captura-escenario" class="nes-btn">Buscar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Playa</h3>
+                    <a href="#captura-escenario" class="nes-btn">Buscar</a>
+                </div>
+            </div>
+            <div class="gen-card nes-container is-rounded">
+                <img src="https://img.freepik.com/free-vector/desert-landscape-scene-sunset_1308-54562.jpg" class="zone-img">
+                <div class="zone-body">
+                    <h3>Cueva</h3>
+                    <a href="#captura-escenario" class="nes-btn">Buscar</a>
+                </div>
+            </div>
+            </div>
+    </section>
+
+    <section id="view-captura-escenario" class="page">
+        <h2>Zona Salvaje</h2>
+        <div class="nes-container is-rounded">
+            <img src="https://img.freepik.com/free-vector/landscape-with-mountains_23-2148283526.jpg" class="scene-bg">
+            <div class="scene-overlay">
+                <a href="#captura-resultado" class="nes-btn" style="width:auto; padding:20px 40px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png" style="width:20px;">
+                    ¡Lanzar Pokéball!
+                </a>
+            </div>
+        </div>
+        <a href="#capturar" class="nav-btn" style="display:inline-block; margin-top:20px;">&larr; Huir</a>
+    </section>
+
+    <section id="view-captura-resultado" class="page">
+        <div class="nes-container is-rounded" style="background:white; padding:20px; max-width:400px; margin:auto;">
+            <h3>¡Atrapado!</h3>
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" width="150">
+            <h2>PIKACHU</h2>
+            <p>Tipo Eléctrico. Le gustan las manzanas.</p>
+            <form action="#caja" method="GET">
+                <div class="radio-group">
+                    <label><input type="radio" name="acc" value="box" checked><span class="radio-label">Guardar</span></label>
+                    <label><input type="radio" name="acc" value="release"><span class="radio-label" style="color:red;">Liberar</span></label>
+                </div>
+                <button class="nes-btn">CONFIRMAR</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="view-caja" class="page">
+        <h1>Mi Caja</h1>
+        <div class="box-grid">
+            <div class="box-item">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" ><br>Pikachu
+            </div>
+            <div class="box-item">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" ><br>Bulbasaur
+            </div>
+            <div class="box-item"></div><div class="box-item"></div><div class="box-item"></div>
+        </div>
+        <br>
+        <a href="#home" class="nav-btn" style="display:inline-block; margin-top:20px;">&larr; Volver al Inicio</a>
+    </section>
+
+    <section id="view-combates" class="page">
+        <h1>Combates</h1>
+        <p>Selecciona un nivel...</p>
+    </section>
+
+    <section id="view-equipo" class="page">
+        <h1>Mi Equipo</h1>
+        <p>Gestiona tu equipo de 6 Pokémon...</p>
+    </section>
+
+</body>
+</html>
