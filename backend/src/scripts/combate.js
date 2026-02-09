@@ -129,21 +129,27 @@ async function getOneEntrenador(id) {
 
 // ==================== COMBATE ====================
 
+
 function calcularMultiplicador(tiposAtacante, tiposDefensor, efectividades) {
-  let multiplicador = 1.0;
+  let sumaEfectividad = 0; // Empezamos en 0 para sumar
 
   for (const tipoAtacante of tiposAtacante) {
     for (const tipoDefensor of tiposDefensor) {
       const efectividad = efectividades.find(
         e => e.tipo_atacante === tipoAtacante && e.tipo_defensor === tipoDefensor
       );
+
       if (efectividad) {
-        multiplicador *= parseFloat(efectividad.multiplicador);
+        // Sumamos el valor de la tabla (0, 0.5, 1, 2, etc.)
+        sumaEfectividad += parseFloat(efectividad.multiplicador);
+      } else {
+        // Si no está en la tabla, asumimos que es daño neutro (1)
+        sumaEfectividad += 1.0;
       }
     }
   }
 
-  return multiplicador;
+  return sumaEfectividad;
 }
 
 async function iniciarCombate(entrenador_id) {
@@ -275,6 +281,16 @@ async function iniciarCombate(entrenador_id) {
       ganador = 'enemigo';
       victoriasEnemigo++;
     }
+    
+    console.log(`🥊 Combate ${i+1}:`, {
+      jugador: `${pokemonJugador.apodo || pokemonJugador.pokemon_nombre} (${pokemonJugador.tipos.join('/')}) Lvl ${pokemonJugador.nivel}`,
+      enemigo: `${pokemonEnemigo.pokemon_nombre} (${pokemonEnemigo.tipos.join('/')}) Lvl ${pokemonEnemigo.nivel}`,
+      multiplicadorJugador: multiplicadorJugador.toFixed(2),
+      multiplicadorEnemigo: multiplicadorEnemigo.toFixed(2),
+      poderJugador: poderJugador.toFixed(2),
+      poderEnemigo: poderEnemigo.toFixed(2),
+      ganador: ganador
+    });
 
     resultadosCombates.push({
       posicion: i + 1,
@@ -294,6 +310,11 @@ async function iniciarCombate(entrenador_id) {
 
   // 6. Determinar resultado final (necesita 3+ victorias)
   const resultado = victoriasJugador >= 3 ? 'victoria' : 'derrota';
+  
+  console.log(`\n🏆 RESULTADO FINAL:`);
+  console.log(`   Victorias Jugador: ${victoriasJugador}`);
+  console.log(`   Victorias Enemigo: ${victoriasEnemigo}`);
+  console.log(`   Resultado: ${resultado.toUpperCase()}\n`);
 
   // 7. Calcular XP según resultado
   let xpJugador;

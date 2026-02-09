@@ -34,34 +34,32 @@ async function getAllHabitats() {
 
 // ==================== HÁBITATS DEL JUGADOR ====================
 
+// Archivo: src/scripts/habitats.js
+
 async function getJugadorHabitats() {
   const jugadorId = await getJugadorId();
   
   if (!jugadorId) {
-    return { error: 'Jugador not found' };
+    return [];
   }
 
   const result = await dbClient.query(`
     SELECT 
-      jh.id as jugador_habitat_id,
       h.id as habitat_id,
-      h.tipo,
-      h.capacidad,
+      h.nombre,
       h.imagen_url,
-      COUNT(jhp.jugador_pokemon_id) as pokemons_asignados,
-      ARRAY_AGG(DISTINCT hat.tipo_nombre ORDER BY hat.tipo_nombre) as tipos_compatibles
+      h.capacidad,
+      COUNT(jhp.id) as cantidad_pokemons
     FROM jugador_habitats jh
     INNER JOIN habitats h ON jh.habitat_id = h.id
-    INNER JOIN habitat_tipos_aceptados hat ON h.id = hat.habitat_id
     LEFT JOIN jugador_habitat_pokemons jhp ON jh.id = jhp.jugador_habitat_id
     WHERE jh.jugador_id = $1
-    GROUP BY jh.id, h.id, h.tipo, h.capacidad, h.imagen_url
-    ORDER BY jh.id
+    GROUP BY h.id, h.nombre, h.imagen_url, h.capacidad
+    ORDER BY h.id
   `, [jugadorId]);
-  
+
   return result.rows;
 }
-
 async function getHabitatPokemons(jugador_habitat_id) {
   const jugadorId = await getJugadorId();
   

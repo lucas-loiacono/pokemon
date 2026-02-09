@@ -1,9 +1,22 @@
 const express = require('express');
+const { Pool } = require('pg');
 
 const app = express();
 app.use(express.json());
 
+const cors = require('cors');
+app.use(cors());
+
 const PORT = process.env.PORT || 3000;
+
+// Configuración de la base de datos para tipo-efectividad
+const dbClient = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'pokemon',
+  password: 'postgres',
+  port: 5432,
+});
 
 const {
   getAllPokemons,
@@ -445,6 +458,24 @@ app.post('/api/entrenadores/:id/combatir', async (req, res) => {
   }
 });
 
+
+// ==================== TIPO EFECTIVIDAD ====================
+
+// Get tipo efectividad table
+app.get('/api/tipo-efectividad', async (req, res) => {
+  try {
+    const result = await dbClient.query(`
+      SELECT tipo_atacante, tipo_defensor, multiplicador
+      FROM tipo_efectividad
+      ORDER BY tipo_atacante, tipo_defensor
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==================== NIVELES ====================
 
 // Verificar subida de nivel de un Pokémon
@@ -549,4 +580,3 @@ app.post('/api/reiniciar', async (req, res) => {
 app.listen(PORT, () => {
   console.log("Server Listening on PORT:", PORT);
 });
-
