@@ -387,49 +387,51 @@
     <div class="nes-container is-rounded" style="background:white; max-width:500px; margin:auto; text-align: left;">
         
         <div style="display:flex; gap:20px; align-items:center; margin-bottom: 20px;">
+            
             <div style="text-align: center;">
-                <img id="int-img" src="" width="120" style="image-rendering: pixelated; border: 4px solid #eee; border-radius: 50%; padding: 10px;">
+                <img id="int-img" src="" width="120" style="image-rendering: pixelated; min-height: 120px;">
             </div>
             
             <div style="flex: 1;">
-                <h3 id="int-nombre" style="margin:0; font-size: 1rem;">Cargando...</h3>
+                <h3 id="int-nombre" style="margin:0; font-size: 1.1rem; text-transform: capitalize;">Cargando...</h3>
                 
-                <div style="display: flex; gap: 5px; margin-top: 10px;">
-                    <input type="text" id="int-apodo-input" class="nes-input is-success" style="padding: 0 10px; height: 30px; font-size: 0.7rem;" placeholder="Nuevo apodo">
-                    <button class="nes-btn is-primary" style="padding: 0 10px; height: 30px; font-size: 0.7rem;" onclick="guardarApodo()">OK</button>
+                <div style="display: flex; gap: 5px; margin-top: 8px;">
+                    <input type="text" id="int-apodo-input" class="nes-input is-success" style="padding: 0 8px; height: 28px; font-size: 0.7rem;" placeholder="Nuevo apodo">
+                    <button class="nes-btn is-primary" style="padding: 0 8px; height: 28px; font-size: 0.7rem;" onclick="guardarApodo()">OK</button>
                 </div>
 
-                <div style="margin-top: 15px;">
-                    <span id="int-nivel" style="color:var(--azul-poke); font-weight: bold;">Nivel --</span>
-                    <span id="int-xp-text" style="font-size: 0.6rem; float: right; margin-top: 5px;">XP: --/--</span>
+                <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: baseline;">
+                    <span id="int-nivel" style="color:var(--azul-poke); font-weight: bold; font-size: 0.9rem;">Nivel --</span>
+                    <span id="int-xp-text" style="font-size: 0.6rem; color: #666;">XP: --/--</span>
                 </div>
-                <progress id="int-progress" class="nes-progress is-primary" value="0" max="100" style="height: 15px; margin-top: 5px;"></progress>
+                <progress id="int-progress" class="nes-progress is-primary" value="0" max="100" style="height: 15px; margin-top: 4px; width: 100%;"></progress>
             </div>
         </div>
 
-        <div style="border-top: 4px dashed #ccc; margin: 20px 0;"></div>
+        <div style="border-top: 4px dashed #ddd; margin: 20px 0; opacity: 0.6;"></div>
 
-        <h3 style="text-align: center; color: #e67e22; margin-bottom: 20px;">🍎 Alimentación</h3>
+        <h3 style="text-align: center; color: #e67e22; margin-bottom: 15px; font-size: 1rem;">🍎 Zona de Cuidados</h3>
         
-        <div style="background: #fdf6e3; padding: 15px; border-radius: 10px; border: 2px solid #e67e22;">
+        <div style="background: #fffdf6; padding: 15px; border-radius: 12px; border: 3px solid #f0d39e;">
             <p style="text-align: center; font-size: 0.8rem; margin-bottom: 15px;">
-                Inventario: <strong id="int-bayas-qty" style="font-size: 1.2rem;">--</strong> Bayas
+                Tu Inventario: <strong id="int-bayas-qty" style="font-size: 1.1rem; color: #d35400;">--</strong> Bayas
             </p>
             
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png" width="40">
-                    <div style="font-size: 0.7rem; line-height: 1.4;">
-                        <strong>Baya Verde</strong><br>
-                        <span style="color: #666;">+50 XP</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen_bayas/Baya_Ziuela_EP.png" width="36">
+
+                    <div style="font-size: 0.65rem; line-height: 1.3;">
+                        <strong style="color: #e67e22;">Baya Verde</strong><br>
+                        <span>+20 XP</span>
                     </div>
                 </div>
-                <button class="nes-btn is-warning" onclick="accionAlimentar()">DAR DE COMER</button>
+                <button class="nes-btn is-warning" style="font-size: 0.7rem; padding: 0 12px;" onclick="accionAlimentar()">DAR DE COMER</button>
             </div>
         </div>
 
-        <br><br>
-        <button class="nes-btn" style="width: 100%;" onclick="cerrarInteraccion()">Volver al Hábitat</button>
+        <br>
+        <button class="nes-btn" style="width: 100%; margin-top: 10px;" onclick="cerrarInteraccion()">Volver</button>
     </div>
 </section>
     <section id="view-capturar" class="page">
@@ -1123,10 +1125,7 @@ async function actualizarContadoresHabitat() {
     }
 }
 
-// Variable global para saber en qué habitat estamos
-let habitatActualId = null;
-
-// Datos de los hábitats para actualizar el título y fondo
+// Diccionario con las fotos de fondo de cada hábitat
 const infoHabitats = {
     1: { nombre: 'Pradera', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatllanura.jpg' },
     2: { nombre: 'Bosque', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatbosque.png' },
@@ -1136,12 +1135,13 @@ const infoHabitats = {
     6: { nombre: 'Hielo', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitathielo.png' }
 };
 
+let habitatActualId = null;
 
 async function cargarHabitat(id) {
     console.log('🌲 Cargando hábitat:', id);
     habitatActualId = id;
     
-    // 1. ACTUALIZAR TÍTULO E IMAGEN VISUALMENTE
+    // 1. CAMBIAR FONDO Y TÍTULO SEGÚN EL HÁBITAT
     const info = infoHabitats[id];
     if (info) {
         document.getElementById('titulo-habitat-detalle').textContent = info.nombre;
@@ -1160,16 +1160,16 @@ async function cargarHabitat(id) {
             const pokemon = pokemons[i];
 
             if (pokemon) {
-                // SI HAY POKEMON
+                // Pasamos la URL de la foto para que la interacción la use después
                 contenedor.innerHTML += `
-                    <a href="#poke-interaccion" class="poke-slot" onclick="interactuarPokemon(${pokemon.id})">
+                    <a href="#poke-interaccion" class="poke-slot" 
+                       onclick="interactuarPokemon(${pokemon.id}, '${pokemon.imagen_url}')">
                         <img src="${pokemon.imagen_url}" width="50">
                         <div>${pokemon.apodo || pokemon.nombre}</div>
                         <div style="color:var(--azul-poke);">Nvl ${pokemon.nivel}</div>
                     </a>
                 `;
             } else {
-                // SI ESTÁ VACÍO
                 contenedor.innerHTML += `
                     <div class="poke-slot empty" onclick="abrirModalSeleccion(${id})">
                         + Añadir
@@ -1181,7 +1181,6 @@ async function cargarHabitat(id) {
         console.error('Error cargando habitat:', error);
     }
 }
-
 // Variable para recordar en qué hábitat estamos intentando añadir
 let habitatSeleccionadoId = null;
 
@@ -1340,6 +1339,150 @@ async function elegirStarter(idPokemon) {
     } catch (error) {
         console.error(error);
         alert('Error de conexión');
+    }
+}
+
+// Variable global
+let pokemonInteraccionId = null;
+
+// Ahora aceptamos "imgUrl" como segundo parámetro
+async function interactuarPokemon(id, imgUrl) {
+    pokemonInteraccionId = id;
+    console.log('🥕 Interactuando con:', id);
+    
+    // Cambiamos de vista
+    window.location.hash = '#poke-interaccion';
+    
+    // 1. PONEMOS LA FOTO INMEDIATAMENTE (La misma del hábitat)
+    if (imgUrl) {
+        document.getElementById('int-img').src = imgUrl;
+    } else {
+        document.getElementById('int-img').src = ''; // O una por defecto
+    }
+
+    // Resetear textos mientras carga
+    document.getElementById('int-nombre').textContent = 'Cargando...';
+    document.getElementById('int-apodo-input').value = '';
+    
+    try {
+        // Pedir datos de Nivel y XP
+        const resPoke = await fetch(`${API_URL}/jugador/pokemons/${id}/nivel`);
+        const dataPoke = await resPoke.json();
+        
+        // Pedir Inventario
+        const resInv = await fetch(`${API_URL}/jugador/inventario`);
+        const dataInv = await resInv.json();
+        
+        // --- ACTUALIZAR DATOS ---
+        const nombreMostrar = dataPoke.apodo || dataPoke.pokemon || 'Pokémon';
+        document.getElementById('int-nombre').textContent = nombreMostrar;
+        document.getElementById('int-apodo-input').placeholder = nombreMostrar;
+        
+        // Actualizar barra de nivel
+        actualizarBarraXP(dataPoke);
+
+        // Actualizar bayas
+        const bayas = dataInv.find(i => i.fruta_id === 1);
+        document.getElementById('int-bayas-qty').textContent = bayas ? bayas.cantidad : 0;
+
+    } catch (error) {
+        console.error(error);
+        alert('Error al cargar datos del Pokémon');
+    }
+}
+
+// Helper para actualizar la barra visualmente
+function actualizarBarraXP(data) {
+    document.getElementById('int-nivel').textContent = `Nivel ${data.nivel}`;
+    
+    // Si es nivel máximo
+    if (data.max_nivel) {
+        document.getElementById('int-xp-text').textContent = 'MÁXIMO';
+        document.getElementById('int-progress').value = 100;
+        document.getElementById('int-progress').classList.remove('is-primary');
+        document.getElementById('int-progress').classList.add('is-warning');
+    } else {
+        document.getElementById('int-xp-text').textContent = `XP: ${data.xp_en_nivel_actual} / ${data.xp_para_subir}`;
+        document.getElementById('int-progress').value = data.porcentaje_progreso;
+        document.getElementById('int-progress').classList.remove('is-warning');
+        document.getElementById('int-progress').classList.add('is-primary');
+    }
+}
+
+// 2. ALIMENTAR POKÉMON
+async function accionAlimentar() {
+    if (!pokemonInteraccionId) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/alimentar`, {
+            method: 'POST'
+        });
+        const data = await res.json();
+        
+        if (data.error) {
+            alert('❌ ' + (data.mensaje || data.error)); // Tu backend a veces devuelve "mensaje" en error
+        } else {
+            // ÉXITO
+            // Nota: Tu backend devuelve "frutas_restantes", no "bayas_restantes"
+            if (data.frutas_restantes !== undefined) {
+                document.getElementById('int-bayas-qty').textContent = data.frutas_restantes;
+            }
+            
+            // Animación de subida de XP o Nivel
+            if (data.subio_nivel) {
+                alert(`🎉 ¡Subió de nivel! Ahora es nivel ${data.nivel_actual}`);
+                // Actualizar texto de nivel inmediatamente
+                document.getElementById('int-nivel').textContent = `Nivel ${data.nivel_actual}`;
+            } else {
+                // Mensaje flotante simple
+                console.log(`Ganó ${data.xp_ganada} XP`);
+            }
+            
+            // Recargar barra de XP visualmente
+            const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
+            const dataPoke = await resPoke.json();
+            actualizarBarraXP(dataPoke);
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Error de conexión');
+    }
+}
+
+// 3. CAMBIAR APODO
+async function guardarApodo() {
+    const nuevoApodo = document.getElementById('int-apodo-input').value;
+    if (!nuevoApodo || !pokemonInteraccionId) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/apodo`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apodo: nuevoApodo })
+        });
+        
+        const data = await res.json();
+        
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('✅ Nombre cambiado a: ' + data.apodo);
+            document.getElementById('int-nombre').textContent = data.apodo;
+            document.getElementById('int-apodo-input').value = '';
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// 4. CERRAR
+function cerrarInteraccion() {
+    // Volvemos al habitat anterior (usando la variable global que creamos antes)
+    if (habitatActualId) {
+        cargarHabitat(habitatActualId); // Recargar para ver cambios (nivel, nombre)
+        window.location.hash = '#habitat-detalle';
+    } else {
+        window.location.hash = '#habitats';
     }
 }
 </script>

@@ -166,7 +166,7 @@ INSERT INTO granjas_slots_config (nivel_jugador, slots_disponibles) VALUES
 (25, 6), (26, 6), (27, 6), (28, 6), (29, 6), (30, 6);
 
 INSERT INTO frutas (id, nombre, tiempo_produccion_minutos, cantidad_produccion, xp_otorgada, imagen_url) VALUES
-(1, 'Bayas verdes', 10, 10, 20, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png')
+(1, 'Bayas verdes', 10, 10, 20, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen_bayas/Baya_Ziuela_EP.png')
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   tiempo_produccion_minutos = EXCLUDED.tiempo_produccion_minutos,

@@ -1,0 +1,42 @@
+// Archivo: src/scripts/apodo.js
+const { Pool } = require('pg');
+
+const dbClient = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'pokemon',
+  password: 'postgres',
+  port: 5432,
+});
+
+async function cambiarApodo(jugadorPokemonId, nuevoApodo) {
+    try {
+        // 1. Validar que el apodo no esté vacío
+        if (!nuevoApodo || nuevoApodo.trim() === '') {
+            return { error: 'El apodo no puede estar vacío' };
+        }
+
+        // 2. Obtener ID del jugador para verificar propiedad (seguridad)
+        const result = await dbClient.query('SELECT jugador_id FROM jugador_pokemons WHERE id = $1', [jugadorPokemonId]);
+        if (result.rowCount === 0) return { error: 'Pokémon no encontrado' };
+        
+        // (Aquí podrías validar si el jugador actual es el dueño, si tienes el ID del jugador en la sesión)
+
+        // 3. Actualizar el apodo
+        await dbClient.query(
+            'UPDATE jugador_pokemons SET apodo = $1 WHERE id = $2',
+            [nuevoApodo.trim(), jugadorPokemonId]
+        );
+
+        return { 
+            mensaje: 'Apodo actualizado', 
+            apodo: nuevoApodo.trim() 
+        };
+
+    } catch (error) {
+        console.error(error);
+        return { error: 'Error al cambiar apodo' };
+    }
+}
+
+module.exports = { cambiarApodo };

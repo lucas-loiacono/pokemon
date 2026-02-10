@@ -92,7 +92,7 @@ const {
   getStartersDisponibles
 } = require('./src/scripts/inicializacion');
 
-// ... resto del código igual
+const { cambiarApodo } = require('./src/scripts/apodo')
 
 
 // Health route
@@ -575,6 +575,12 @@ app.post('/api/inicializar', async (req, res) => {
 app.post('/api/reiniciar', async (req, res) => {
   const result = await reiniciarJuego();
   res.json(result);
+});
+
+app.put('/api/jugador/pokemons/:id/apodo', async (req, res) => {
+    const { apodo } = req.body;
+    const resultado = await cambiarApodo(req.params.id, apodo);
+    res.json(resultado);
 });
 
 app.listen(PORT, () => {
