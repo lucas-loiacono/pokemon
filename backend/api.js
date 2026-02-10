@@ -39,6 +39,7 @@ const {
   getAllHabitats,
   getJugadorHabitats,
   getHabitatPokemons,
+  getHabitatTipos, 
   asignarPokemonHabitat,
   quitarPokemonHabitat
 } = require('./src/scripts/habitats');
@@ -172,9 +173,28 @@ app.get('/api/jugador/pokemons', async (req, res) => {
 });
 
 // Get jugador's inventario (frutas)
+// --- VERSIÓN CORREGIDA: Obtener inventario directo ---
 app.get('/api/jugador/inventario', async (req, res) => {
-  const inventario = await getJugadorInventario();
-  res.json(inventario);
+  try {
+    // 1. Buscamos el ID del jugador
+    const jugadorQuery = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+    const jugadorId = jugadorQuery.rows[0]?.id;
+
+    if (!jugadorId) return res.json([]); // Si no hay jugador, devolvemos lista vacía
+
+    // 2. Buscamos sus frutas directamente en la base de datos
+    const result = await dbClient.query(
+      'SELECT fruta_id, cantidad FROM jugador_frutas WHERE jugador_id = $1', 
+      [jugadorId]
+    );
+    
+    // Devolvemos las filas (ej: [{fruta_id: 1, cantidad: 50}])
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Error obteniendo inventario:', error);
+    res.status(500).json({ error: 'Error de servidor' });
+  }
 });
 
 // Update jugador stats (usado internamente por el juego)
@@ -240,6 +260,12 @@ app.get('/api/jugador/habitats', async (req, res) => {
 app.get('/api/jugador/habitats/:id/pokemons', async (req, res) => {
   const pokemons = await getHabitatPokemons(req.params.id);
   res.json(pokemons);
+});
+
+// Obtener tipos permitidos en un hábitat
+app.get('/api/habitats/:id/tipos', async (req, res) => {
+  const tipos = await getHabitatTipos(req.params.id);
+  res.json(tipos);
 });
 
 // Assign pokemon to habitat
