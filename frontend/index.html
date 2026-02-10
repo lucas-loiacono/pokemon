@@ -267,60 +267,30 @@
             <a href="#caja" class="nes-btn inicio">CAJA</a>
         </div>
     </section>
-   <section id="view-granja" class="page">
-    <div class="resources-hud">
-        <img src="https://cdn-icons-png.flaticon.com/512/1147/1147805.png" style="width:20px;">
-        <span>Bayas: <span id="cantidad-bayas">120</span></span> 
-    </div>
-    
-    <h1>Mis Parcelas</h1>
-    
-    <div class="granja-grid">
+   <section id="view-granja" class="page" style="display: none;">
+    <div class="container" style="margin-top: 20px; position: relative;">
         
-        <div class="gen-card nes-container is-rounded">
-            <h3>Parcela 1</h3>
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png" class="farm-img">  
-            <form action="recolectar.php" method="POST">
-                <input type="hidden" name="parcela_id" value="1">
-                <button class="nes-btn is-warning">RECOLECTAR (+20)</button>
-            </form>
-        </div>
-        
-        <div class="gen-card nes-container is-rounded">
-            <h3>Parcela 2</h3>
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png" class="farm-img">
-            <button class="nes-btn is-disabled" disabled>Esperando</button>
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 30px; position: relative; height: 60px;">
+            
+            <div style="text-align: center; width: 100%;">
+                <h1 style="margin: 0;">Mis Granjas</h1>
+                <p style="margin: 5px 0 0 0; color: #666; font-size: 0.8rem;">Recolecta comida para tus Pokémon</p>
+            </div>
+
+            <div class="nes-container is-rounded" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); padding: 5px 15px; background: white; display: flex; align-items: center; gap: 10px; z-index: 10;">
+                <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen_bayas/Baya_Ziuela_EP.png" width="28">
+                <span id="contador-bayas-granja" style="font-weight: bold; font-size: 1rem;">--</span>
+            </div>
         </div>
 
-        <div class="gen-card locked" data-req="5">
-            <h3>Parcela 3</h3>
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png" class="farm-img">
-            <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
+        <div id="lista-granjas" class="granja-grid">
+            <p style="text-align:center; width:100%;">Cargando...</p>
         </div>
-
-        <div class="gen-card locked" data-req="10">
-            <h3>Parcela 4</h3>
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png" class="farm-img">
-            <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
-        </div>
-
-        <div class="gen-card locked" data-req="15">
-            <h3>Parcela 5</h3>
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png" class="farm-img">
-            <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
-        </div>
-
-        <div class="gen-card locked" data-req="20">
-            <h3>Parcela 6</h3>
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png" class="farm-img">
-            <button class="nes-btn is-disabled" disabled>BLOQUEADO</button>
-        </div>
-
     </div>
 </section>
  <section id="view-habitats" class="page">
     <h1>Gestionar Hábitats</h1>
-    <p>Visita a tus Pokémon y entrénalos.</p>
+    <p>Visita a tus Pokémon y aliméntalos.</p>
     
     <div class="habitat-grid">
         
@@ -687,43 +657,48 @@ let equipoJugador = [];
 
 console.log('✅ Script de combates cargado');
 
-// ========== DETECTAR CAMBIO DE HASH ==========
+/// ========== DETECTAR CAMBIO DE HASH (NAVEGACIÓN) ==========
 window.addEventListener('hashchange', () => {
     const hash = window.location.hash;
     const viewCombates = document.getElementById('view-combates');
     
-    // Lógica de combates
-    if (hash === '#combates') {
-        viewCombates.style.display = 'block';
-        cargarCombates();
-    } else {
+    // 1. Ocultar combates si salimos de ahí
+    if (hash !== '#combates') {
         viewCombates.style.display = 'none';
     }
 
-    // NUEVA LÓGICA: Si entra a habitats, actualizamos los números
-    if (hash === '#habitats') {
+    // 2. Cargar la sección correspondiente
+    if (hash === '#combates') {
+        viewCombates.style.display = 'block';
+        cargarCombates();
+    } 
+    else if (hash === '#habitats') {
         actualizarContadoresHabitat();
+    } 
+    else if (hash === '#granja') {  // <--- ESTO ES LO QUE FALTABA
+        cargarGranja();
     }
 });
 
-// ========== CARGAR AL INICIO SI YA ESTÁ EN #combates ==========
-// ========== INICIO DEL JUEGO ==========
+// ========== CARGAR AL INICIO (REFRESH) ==========
 window.addEventListener('DOMContentLoaded', async () => {
-    // 1. Verificar si el jugador existe
     await verificarEstadoJuego();
 
-    // 2. Cargar efectividades (si ya estamos logueados)
     try {
         const res = await fetch(`${API_URL}/tipo-efectividad`);
         if (res.ok) efectividades = await res.json();
     } catch (error) { console.error(error); }
 
-    // 3. Manejar vista actual
     const hash = window.location.hash;
-    const viewCombates = document.getElementById('view-combates');
+    
+    // Cargar la vista inicial si estamos en una específica
     if (hash === '#combates') {
-        viewCombates.style.display = 'block';
+        document.getElementById('view-combates').style.display = 'block';
         cargarCombates();
+    } else if (hash === '#granja') { // <--- ESTO TAMBIÉN FALTABA
+        cargarGranja();
+    } else if (hash === '#habitats') {
+        actualizarContadoresHabitat();
     }
 });
 // ========== CARGAR NIVELES ==========
@@ -1345,7 +1320,6 @@ async function elegirStarter(idPokemon) {
 // Variable global
 let pokemonInteraccionId = null;
 
-// Ahora aceptamos "imgUrl" como segundo parámetro
 async function interactuarPokemon(id, imgUrl) {
     pokemonInteraccionId = id;
     console.log('🥕 Interactuando con:', id);
@@ -1353,11 +1327,11 @@ async function interactuarPokemon(id, imgUrl) {
     // Cambiamos de vista
     window.location.hash = '#poke-interaccion';
     
-    // 1. PONEMOS LA FOTO INMEDIATAMENTE (La misma del hábitat)
+    // 1. PONEMOS LA FOTO INMEDIATAMENTE
     if (imgUrl) {
         document.getElementById('int-img').src = imgUrl;
     } else {
-        document.getElementById('int-img').src = ''; // O una por defecto
+        document.getElementById('int-img').src = ''; 
     }
 
     // Resetear textos mientras carga
@@ -1376,7 +1350,9 @@ async function interactuarPokemon(id, imgUrl) {
         // --- ACTUALIZAR DATOS ---
         const nombreMostrar = dataPoke.apodo || dataPoke.pokemon || 'Pokémon';
         document.getElementById('int-nombre').textContent = nombreMostrar;
-        document.getElementById('int-apodo-input').placeholder = nombreMostrar;
+        
+        // AQUÍ ESTÁ EL CAMBIO:
+        document.getElementById('int-apodo-input').placeholder = "Cambiar nombre";
         
         // Actualizar barra de nivel
         actualizarBarraXP(dataPoke);
@@ -1472,6 +1448,171 @@ async function guardarApodo() {
         }
     } catch (error) {
         console.error(error);
+    }
+}
+
+async function cargarGranja() {
+    // Niveles según tu base de datos
+    const nivelesDesbloqueo = { 
+        2: 3, 
+        3: 6, 
+        4: 12, 
+        5: 18, 
+        6: 25 
+    };
+
+    try {
+        // Cargar Contador
+        try {
+            const resInv = await fetch(`${API_URL}/jugador/inventario`);
+            if (resInv.ok) {
+                const inventario = await resInv.json();
+                const bayas = inventario.find(i => i.fruta_id === 1);
+                const contador = document.getElementById('contador-bayas-granja');
+                if (contador) contador.textContent = bayas ? bayas.cantidad : 0;
+            }
+        } catch (e) { console.error(e); }
+
+        // Cargar Parcelas
+        const res = await fetch(`${API_URL}/jugador/granjas`);
+        if (!res.ok) {
+            document.getElementById('lista-granjas').innerHTML = '<p>Error de conexión.</p>';
+            return;
+        }
+
+        const data = await res.json();
+        const listaGranjas = data.granjas || [];
+        const contenedor = document.getElementById('lista-granjas');
+        contenedor.innerHTML = '';
+
+        if (listaGranjas.length === 0) {
+            contenedor.innerHTML = '<p style="width:100%;">No tienes parcelas.</p>';
+            return;
+        }
+
+        listaGranjas.forEach(g => {
+            const numero = g.numero_granja;
+            const imagenGranja = "https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png";
+            
+            let imagenHTML = '';
+            let botonAccion = '';
+            // CORRECCIÓN: Quitamos el 'border: 4px solid' para que use el estilo pixelado original
+            let estiloContenedor = 'background: white;'; 
+
+            if (!g.desbloqueada) {
+                // --- BLOQUEADO ---
+                const nivelReq = nivelesDesbloqueo[numero] || 30;
+                // Fondo gris suave, sin borde manual (usará el pixelado grisáceo por defecto)
+                estiloContenedor = 'background: #e0e0e0; color: #777;'; 
+
+                imagenHTML = `
+                    <div style="position: relative; width: 100%; height: 120px; display:flex; align-items:center; justify-content:center;">
+                        <img src="${imagenGranja}" style="height: 100%; width: auto; filter: grayscale(100%); opacity: 0.4;">
+                        
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                    background: #333; color: white; padding: 6px 10px; border-radius: 4px; 
+                                    font-size: 0.8rem; z-index: 10; white-space: nowrap;">
+                            🔒 Nivel ${nivelReq}
+                        </div>
+                    </div>
+                `;
+
+                botonAccion = `
+                    <button class="nes-btn is-disabled" style="width: 100%; font-size: 0.7rem; margin-top: 10px;">BLOQUEADO</button>
+                `;
+
+            } else {
+                // --- DESBLOQUEADO ---
+                
+                imagenHTML = `
+                    <div style="width: 100%; height: 120px; display:flex; align-items:center; justify-content:center;">
+                        <img src="${imagenGranja}" style="height: 100%; width: auto; filter: drop-shadow(0 4px 0 rgba(0,0,0,0.2));">
+                    </div>
+                `;
+
+                if (g.puede_recolectar) {
+                    botonAccion = `
+                        <button class="nes-btn is-warning" onclick="recolectar(${g.granja_id})" style="width: 100%; font-size: 0.7rem; margin-top: 10px; padding: 5px;">
+                            RECOLECTAR (+20)
+                        </button>`;
+                } else {
+                    // Tiempo restante
+                    let textoTiempo = "Creciendo...";
+                    if (g.tiempo_restante > 0) {
+                        const minutos = Math.floor(g.tiempo_restante / 60);
+                        const segundos = Math.floor(g.tiempo_restante % 60);
+                        textoTiempo = `⏳ ${minutos}:${segundos.toString().padStart(2, '0')}`;
+                    }
+
+                    botonAccion = `
+                        <button class="nes-btn is-primary" style="width: 100%; font-size: 0.7rem; margin-top: 10px; opacity: 0.8; cursor: default;">
+                            ${textoTiempo}
+                        </button>`;
+                }
+            }
+
+            // Insertamos la tarjeta
+            // Al usar 'nes-container is-rounded' sin forzar border, volverá el marco original
+            contenedor.innerHTML += `
+                <div class="nes-container is-rounded" style="${estiloContenedor} padding: 15px; text-align: center;">
+                    
+                    <h3 style="font-size: 0.9rem; margin: 0 0 15px 0; border-bottom: 2px dashed #ccc; padding-bottom: 5px;">
+                        Parcela ${numero}
+                    </h3>
+
+                    ${imagenHTML}
+
+                    ${botonAccion}
+                </div>
+            `;
+        });
+
+    } catch (error) {
+        console.error('Error cargando granja:', error);
+    }
+}
+// ==================== FUNCIONES DE GRANJA ====================
+
+async function recolectar(granjaId) {
+    try {
+        // 1. Efecto visual en el botón (para que sepas que hiciste clic)
+        const btn = event.target; 
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '⏳...';
+        btn.disabled = true;
+
+        // 2. Llamada al Servidor
+        const res = await fetch(`${API_URL}/jugador/granjas/${granjaId}/recolectar`, {
+            method: 'POST'
+        });
+        const data = await res.json();
+
+        if (data.error) {
+            // Si hay error (ej: inventario lleno), mostramos aviso y restauramos botón
+            alert(data.mensaje || data.error);
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        } else {
+            // 3. ÉXITO: Actualizamos el contador ARRIBA A LA DERECHA inmediatamente
+            // El backend nos devuelve "total_frutas"
+            if (data.total_frutas !== undefined) {
+                const contador = document.getElementById('contador-bayas-granja');
+                if (contador) {
+                    contador.textContent = data.total_frutas;
+                    
+                    // Efecto visual extra: parpadeo verde para indicar ganancia
+                    contador.style.color = '#27ae60'; 
+                    setTimeout(() => contador.style.color = '', 500);
+                }
+            }
+
+            // 4. Recargamos la grilla para que la parcela pase a "Creciendo..."
+            await cargarGranja(); 
+        }
+
+    } catch (error) {
+        console.error(error);
+        alert('Error de conexión');
     }
 }
 
