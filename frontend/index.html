@@ -1933,15 +1933,12 @@ async function recolectar(granjaId) {
 
         if (data.error) {
             alert(data.mensaje || data.error);
-        } else {
-            console.log("✅ Recolectado con éxito");
-            // Esperamos un instante y forzamos la recarga de todo
-            setTimeout(async () => {
-                await actualizarContadoresBayas(); // Actualiza el número
-                await cargarGranja();             // Resetea el timer de la parcela
-                await actualizarHUDJugador();     // Actualiza tu nivel/XP
-            }, 300);
-        }
+      } else {
+    console.log("✅ Recolectado con éxito");
+    await actualizarContadoresBayas(); // <-- AGREGA ESTA LÍNEA AQUÍ
+    await cargarGranja(); 
+    await actualizarHUDJugador();
+}
     } catch (error) {
         console.error(error);
         alert('Error de conexión');
