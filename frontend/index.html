@@ -1876,18 +1876,17 @@ async function cargarGranja() {
             `;
         });
 
-        // --- INICIAR EL RELOJ EN VIVO ---
+         // --- INICIAR EL RELOJ EN VIVO ---
         intervaloGranja = setInterval(async () => {
-            const timers = document.querySelectorAll('.granja-timer');
-            
-            // Si no hay timers activos, paramos el reloj para ahorrar recursos
-            if (timers.length === 0) {
-                clearInterval(intervaloGranja);
-                return;
-            }
-
             // Actualizar contador de bayas cada segundo
             await actualizarContadoresBayas();
+            
+            const timers = document.querySelectorAll('.granja-timer');
+            
+            // Si no hay timers activos, solo actualizamos el contador y salimos
+            if (timers.length === 0) {
+                return;
+            };
 
             let algunCambio = false;
 
