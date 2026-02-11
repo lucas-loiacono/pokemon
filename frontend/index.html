@@ -371,7 +371,7 @@
             
             <div style="text-align: center;">
                 <h1 style="margin: 0; font-size: 1.5rem;">Mis Granjas</h1>
-                <p style="margin: 5px 0 0 0; color: #666; font-size: 0.7rem;">Gestiona tus cultivos</p>
+                <<p style="margin: 5px 0 0 0; font-size: 0.7rem;">Gestiona tus cultivos</p>
             </div>
 
             <div class="nes-container is-rounded" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); padding: 5px 15px; background: white; display: flex; align-items: center; gap: 10px; z-index: 10;">
@@ -625,7 +625,7 @@
 </section>
   <section id="view-caja" class="page">
         <h1 id="titulo-caja">Mi Caja (--/--)</h1>
-        <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">Aquí están todos los Pokémon que has capturado.</p>
+        <p style="font-size: 0.7rem; margin-bottom: 25px;">Aquí están todos los Pokémon que has capturado.</p>
         
         <div id="lista-caja" class="box-grid" style="border-radius: 8px;">
             </div>
@@ -1722,14 +1722,18 @@ async function cargarStarters() {
         const contenedor = document.getElementById('lista-starters');
         
         contenedor.innerHTML = starters.map(p => `
-            <div class="nes-container is-rounded is-centered with-title" style="width: 220px; cursor: pointer; background: white;" onclick="elegirStarter(${p.id})">
-                <p class="title">${p.nombre}</p>
-                <img src="${p.imagen_url}" width="120" style="margin-bottom: 10px;">
-                <div>
-                    <span class="nes-text is-primary">Tipo: ${p.tipos.join('/')}</span>
+            <div class="nes-container is-rounded is-centered with-title" style="width: 220px; cursor: pointer; background: white; display: flex; flex-direction: column;" onclick="elegirStarter(${p.id})">
+                <p class="title" style="text-transform: capitalize;">${p.nombre}</p>
+                
+                <img src="${p.imagen_url}" width="120" style="margin: 0 auto;">
+                
+                <div style="margin-top: 5px; margin-bottom: 15px; text-align: center;">
+                    <span class="nes-text is-primary" style="font-size: 0.75rem; line-height: 1.4;">
+                        Tipo:<br>${p.tipos.join(' / ')}
+                    </span>
                 </div>
-                <br>
-                <button class="nes-btn is-success">¡Te elijo a ti!</button>
+                
+                <button class="nes-btn is-success" style="margin-top: auto; width: 100%; padding: 5px;">¡Te elijo a ti!</button>
             </div>
         `).join('');
         

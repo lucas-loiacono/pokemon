@@ -79,6 +79,10 @@ async function getZonaPokemons(zona_id) {
     WHERE pt.tipo_id IN (
       SELECT tipo_id FROM zona_tipos WHERE zona_id = $1
     )
+    -- AQUÍ ESTÁ LA MAGIA: Excluimos a los que son evoluciones de otros
+    AND p.id NOT IN (
+      SELECT pokemon_id_siguiente FROM evoluciones
+    )
     GROUP BY p.id, p.pokedex_id, p.nombre, p.imagen_url
     ORDER BY p.pokedex_id
   `, [zona_id]);
@@ -124,13 +128,17 @@ async function capturarPokemon(zona_id) {
     };
   }
 
-  // 3. Obtener Pokémon aleatorio de los TIPOS de la zona
+  // 3. Obtener Pokémon aleatorio de los TIPOS de la zona (SOLO FASE 1)
   const pokemonsDisponibles = await dbClient.query(`
     SELECT DISTINCT p.id as pokemon_id
     FROM pokemons p
     INNER JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
     WHERE pt.tipo_id IN (
       SELECT tipo_id FROM zona_tipos WHERE zona_id = $1
+    )
+    -- LA MISMA MAGIA AQUÍ: Solo atrapamos especies base
+    AND p.id NOT IN (
+      SELECT pokemon_id_siguiente FROM evoluciones
     )
   `, [zona_id]);
 
