@@ -1581,19 +1581,18 @@ async function interactuarPokemon(id, imgUrl) {
     // 1. FOTO: Ponemos la foto que recibimos del hábitat
     if (imgUrl) {
         document.getElementById('int-img').src = imgUrl;
-    } else {
-        document.getElementById('int-img').src = ''; 
     }
 
     // 2. TEXTOS: Resetear mientras carga
     document.getElementById('int-nombre').textContent = 'Cargando...';
     document.getElementById('int-apodo-input').value = '';
-    document.getElementById('int-bayas-qty').textContent = '--'; // Poner guiones mientras carga
+    document.getElementById('int-bayas-qty').textContent = '--'; 
 
-    // 3. CARGAR INVENTARIO INMEDIATAMENTE (Aquí estaba el fallo)
-    await actualizarContadoresBayas(); 
+    // 3. CARGAR INVENTARIO (Agregamos el AWAIT aquí)
+    await actualizarContadoresBayas(); // <--- ¡Asegúrate de que tenga el await!
     
     try {
+        // ... resto del código ...
         // 4. CARGAR DATOS DEL POKÉMON
         const resPoke = await fetch(`${API_URL}/jugador/pokemons/${id}/nivel`);
         const dataPoke = await resPoke.json();
