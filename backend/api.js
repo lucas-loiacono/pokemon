@@ -7,6 +7,18 @@ app.use(express.json());
 const cors = require('cors');
 app.use(cors());
 
+// ==================== MIDDLEWARE ANTI-CACHE (CRÍTICO PARA VERCEL) ====================
+app.use((req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Surrogate-Control': 'no-store'
+  });
+  next();
+});
+// ==================================================================================
+
 const PORT = process.env.PORT || 3000;
 
 // Configuración de la base de datos para tipo-efectividad
@@ -95,16 +107,6 @@ const {
 } = require('./src/scripts/inicializacion');
 
 const { cambiarApodo } = require('./src/scripts/apodo')
-
-app.use((req, res, next) => {
-  res.set({
-    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-    'Pragma': 'no-cache',
-    'Expires': '0',
-    'Surrogate-Control': 'no-store'
-  });
-  next();
-});
 
 // Health route
 app.get('/api/health', (req, res) => {
