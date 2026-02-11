@@ -1640,30 +1640,28 @@ async function accionAlimentar() {
         const data = await res.json();
         
         if (data.error) {
-            alert('❌ ' + (data.mensaje || data.error)); // Tu backend a veces devuelve "mensaje" en error
+            alert('❌ ' + (data.mensaje || data.error));
         } else {
-            // ÉXITO
-            // Nota: Tu backend devuelve "frutas_restantes", no "bayas_restantes"
-            if (data.frutas_restantes !== undefined) {
-                document.getElementById('int-bayas-qty').textContent = data.frutas_restantes;
-            }
+            // No confíes en el número que devuelve el botón, 
+            // mejor pregúntale a la base de datos el total real:
+            await actualizarContadoresBayas();
             
-            // Animación de subida de XP o Nivel
+            // Actualizar la barra de progreso del Pokémon
+            const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
+            const dataPoke = await resPoke.json();
+            actualizarBarraXP(dataPoke);
+            
             if (data.subio_nivel) {
-                alert(`🎉 ¡Subió de nivel! Ahora es nivel ${data.nivel_actual}`);
-                // Actualizar texto de nivel inmediatamente
-                document.getElementById('int-nivel').textContent = `Nivel ${data.nivel_actual}`;
+                alert(`🎉 ¡Subió de nivel!`);
                 await verificarEvolucionUI(pokemonInteraccionId);
-            } else {
-                // Mensaje flotante simple
-                console.log(`Ganó ${data.xp_ganada} XP`);
             }
+        }
             
             // Recargar barra de XP visualmente
             const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
             const dataPoke = await resPoke.json();
             actualizarBarraXP(dataPoke);
-        }
+        
     } catch (error) {
         console.error(error);
         alert('Error de conexión');
@@ -1939,20 +1937,14 @@ async function recolectar(granjaId) {
             btn.innerHTML = textoOriginal;
             btn.disabled = false;
         } else {
-            // 1. ACTUALIZAR CONTADOR (Esta es la parte clave)
-            const contador = document.getElementById('contador-bayas-granja');
-            if (contador && data.total_frutas !== undefined) {
-                console.log("Actualizando contador a:", data.total_frutas); // Para depurar
-                contador.textContent = data.total_frutas;
-                contador.style.color = '#e67e22'; // Parpadeo naranja
-                setTimeout(() => contador.style.color = '', 500);
-            }
-
-            // 2. Recargar las parcelas para reiniciar el ciclo
+            console.log("✅ Recolectado. Actualizando interfaz...");
+            // 1. Actualizamos los números globales
+            await actualizarContadoresBayas();
+            // 2. Recargamos la vista de las parcelas para que el timer se resetee
             await cargarGranja(); 
-            actualizarHUDJugador();
+            // 3. Actualizamos la barra de EXP del jugador
+            await actualizarHUDJugador();
         }
-
     } catch (error) {
         console.error(error);
         alert('Error de conexión');
@@ -1962,32 +1954,36 @@ async function recolectar(granjaId) {
 // --- FUNCIÓN MAESTRA PARA ACTUALIZAR CONTADORES ---
 async function actualizarContadoresBayas() {
     try {
-        // Agregamos un timestamp para evitar que el navegador guarde una respuesta vieja (cache)
+        // Usamos un parámetro aleatorio (?t=...) para que el navegador no nos de datos viejos
         const res = await fetch(`${API_URL}/jugador/inventario?t=${Date.now()}`);
         if (res.ok) {
             const inventario = await res.json();
-            console.log("📊 Inventario real de la DB:", inventario);
-
-            // Buscamos la fruta ID 1 (Bayas verdes)
+            
+            // Buscamos la Baya (ID 1) en tu inventario de Neon
             const bayas = inventario.find(i => i.fruta_id === 1 || i.id === 1);
-            const cantidad = bayas ? bayas.cantidad : 0;
+            const cantidadReal = bayas ? bayas.cantidad : 0;
 
-            // ACTUALIZACIÓN FORZOSA EN TODAS LAS VISTAS
-            const idsContadores = ['contador-bayas-granja', 'int-bayas-qty'];
-            idsContadores.forEach(id => {
-                const el = document.getElementById(id);
+            console.log("🔄 Sincronizando inventario:", cantidadReal);
+
+            // Actualizamos TODOS los lugares donde aparece el número de bayas
+            const elementos = [
+                document.getElementById('contador-bayas-granja'), // Pantalla Granjas
+                document.getElementById('int-bayas-qty')          // Pantalla Alimentar
+            ];
+
+            elementos.forEach(el => {
                 if (el) {
-                    el.textContent = cantidad;
-                    // Efecto visual de parpadeo para confirmar que se actualizó
+                    el.textContent = cantidadReal;
+                    // Efecto visual: brilla en naranja cuando cambia el número
                     el.style.color = '#e67e22';
-                    setTimeout(() => el.style.color = '', 300);
+                    setTimeout(() => el.style.color = '', 400);
                 }
             });
             
-            return cantidad; // Devolvemos el valor por si otra función lo necesita
+            return cantidadReal;
         }
     } catch (error) {
-        console.error("❌ Error al sincronizar inventario:", error);
+        console.error("❌ Error de sincronización:", error);
     }
 }
 
