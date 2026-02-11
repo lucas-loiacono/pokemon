@@ -1,12 +1,20 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'pokemon',
-  password: 'postgres',
-  port: 5432,
+  connectionString: 'postgresql://neondb_owner:npg_LXJPI0oZf5Qv@ep-solitary-river-ai21ihv6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+//localhost
+
+//const pool = new Pool({
+//  user: 'postgres',
+//  host: 'localhost',
+//  database: 'pokemon',
+//  password: 'postgres',
+//  port: 5432,
+//});
 
 // NIVELES FIJOS DE EVOLUCIÓN
 const NIVEL_ETAPA_1_A_2 = 10;  // Primera evolución

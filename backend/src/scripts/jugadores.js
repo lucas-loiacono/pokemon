@@ -208,6 +208,26 @@ async function eliminarPokemon(jugador_pokemon_id) {
     mensaje: `${nombre} ha sido liberado`
   };
 }
+// ==================== BORRAR JUGADOR (REINICIAR PARTIDA) ====================
+async function borrarJugador() {
+  const jugadorId = await getJugadorId();
+  
+  if (!jugadorId) {
+    return { error: 'Jugador no encontrado' };
+  }
+
+  // Al borrar al jugador, la base de datos debería eliminar automáticamente en cascada 
+  // sus pokemons, granjas, inventario, etc.
+  await dbClient.query(`
+    DELETE FROM jugadores
+    WHERE id = $1
+  `, [jugadorId]);
+
+  return {
+    eliminado: true,
+    mensaje: 'Partida eliminada correctamente. Volviendo al inicio.'
+  };
+}
 
 module.exports = {
   getJugador,
@@ -215,5 +235,6 @@ module.exports = {
   getJugadorInventario,
   updateJugadorStats,
   setApodo,
-  eliminarPokemon  
+  eliminarPokemon,
+  borrarJugador  
 };

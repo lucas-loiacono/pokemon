@@ -12,12 +12,23 @@
             --azul-poke: #020c69;
             --fondo: linear-gradient(180deg, #b2fefa 0%, #ffffff 100%);
         }
-        body {
+       body {
             font-family: 'Press Start 2P';
             background: var(--fondo);
+            background-attachment: fixed; 
+            background-repeat: no-repeat; 
+            margin: 0; 
             min-height: 100vh;
             color: #333;
             font-size: 12px; 
+        }
+
+        #view-home { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
         }
         nav { display: none; }
         .page { display: none; }
@@ -105,13 +116,30 @@
         .logo-img { width: 100%; max-height: 200px; object-fit: contain; }
         .menu-inicio {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 20px;
-            max-width: 600px;
+            /* Hacemos que los botones midan al menos 220px de ancho */
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 30px; /* Más espacio entre ellos */
+            max-width: 850px; /* Aprovechamos más el ancho de la pantalla */
             margin: 0 auto;
             padding: 20px;
         }      
-        .nes-btn.inicio:hover { background: var(--azul-poke); color: white; margin-top: -2px; margin-bottom: 2px;}
+
+        .nes-btn.inicio {
+            padding: 30px 10px; /* Botones mucho más altos */
+            font-size: 1rem; /* Texto más grande */
+            display: flex;
+            flex-direction: column; /* Ponemos el ícono arriba y el texto abajo */
+            align-items: center;
+            justify-content: center;
+            gap: 15px; /* Espacio entre ícono y texto */
+            transition: all 0.2s ease; /* Animación suave */
+        }
+
+        .nes-btn.inicio:hover { 
+            background: var(--azul-poke); 
+            color: white; 
+            transform: scale(1.05); /* Efecto de que el botón se acerca al pasar el mouse */
+        }
         .resources-hud {
             background: #fff;
             padding: 10px;
@@ -218,18 +246,44 @@
         .combat-modal.active {
             display: block;
         }
+
+        .team-list {
+            display: flex; flex-direction: column; gap: 12px;
+            max-width: 500px; margin: 0 auto;
+        }
+        .team-slot {
+            background: white; border: 4px solid #333; padding: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            text-decoration: none; transition: transform 0.1s;
+        }
+        .team-info { display: flex; align-items: center; gap: 15px; }
+        .team-name { font-size: 0.8rem; font-weight: bold; text-align: left; text-transform: capitalize;}
+        .team-lvl { color: var(--azul-poke); font-size: 0.6rem; margin-top: 4px; text-align: left; }
+        
+        .slot-empty {
+            height: 74px; border: 4px dashed #aaa; background: rgba(255, 255, 255, 0.5);
+            color: #888; font-size: 0.6rem; justify-content: center; cursor: pointer;
+        }
+        .slot-empty:hover { border-color: var(--azul-poke); color: var(--azul-poke); background: #e3f2fd; }
     </style>
 </head>
 <body>
-<section id="view-inicializar" class="page" style="display: none; background: white; z-index: 2000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto;">
-    <div style="max-width: 800px; margin: 50px auto;">
-        <h1 class="nes-text is-primary">¡Bienvenido a Pokémon Rancher!</h1>
-        <p>Parece que eres nuevo aquí.</p>
-        <p>Para comenzar tu aventura, el Profesor te ofrece un compañero:</p>
+<section id="view-inicializar" style="display: none; background: var(--fondo); z-index: 2000; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow-y: auto;">
+    
+    <div style="display: flex; align-items: center; justify-content: center; min-height: 100%; padding: 20px;">
         
-        <div id="lista-starters" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-top: 50px;">
-            Cargando...
+        <div class="nes-container is-rounded is-white" style="background: white; max-width: 850px; width: 100%; text-align: center; padding: 40px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            
+            <h1 style="color: var(--azul-poke); margin-bottom: 20px; font-size: 1.5rem; line-height: 1.5;">¡Bienvenido a<br>Pokémon Rancher!</h1>
+            <p style="font-size: 0.9rem;">Parece que eres nuevo aquí.</p>
+            <p style="margin-bottom: 30px; color: #555; font-size: 0.8rem;">Para comenzar tu aventura, el Profesor te ofrece un compañero:</p>
+            
+            <div id="lista-starters" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;">
+                Cargando...
+            </div>
+            
         </div>
+
     </div>
 </section>
 
@@ -244,27 +298,70 @@
     <div id="combates"></div>
     <div id="equipo"></div>
     <div id="caja"></div>
-    <nav>
-        <a href="#granja" class="nav-btn">Granja</a>
-        <a href="#habitats" class="nav-btn">Habitats</a>
-        <a href="#capturar" class="nav-btn">Capturar</a>
-        <a href="#combates" class="nav-btn">Combates</a>
-        <a href="#equipo" class="nav-btn">Equipo</a>
-        <a href="#caja" class="nav-btn">Caja</a>
-        <a href="#home" class="nav-btn" style="color: red;">Volver</a>
-    </nav>
-    <section id="view-home">
-        <div class="logo-db-container">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg" 
-                 alt="Logo Pokémon Rancher" class="logo-img">
+    <nav style="justify-content: space-between; padding: 10px 20px; align-items: center;">
+        
+        <div style="display: flex; align-items: center; gap: 15px; width: 300px;">
+            
+            <div style="background: #f1c40f; padding: 5px 10px; border-radius: 5px; border: 4px solid #000; color: #000; font-weight: bold; text-align: center; line-height: 1.2;">
+                <div style="font-size: 0.5rem;">NIVEL</div>
+                <div id="hud-nivel-num" style="font-size: 1.2rem;">1</div>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.6rem; margin-bottom: 5px; color: #666; font-weight: bold;">
+                    <span>EXP</span>
+                    <span id="hud-xp-texto">0 / 100</span>
+                </div>
+                <progress id="hud-xp-bar" class="nes-progress is-success" value="0" max="100" style="height: 20px;"></progress>
+            </div>
         </div>
-        <div class="menu-inicio">
-            <a href="#granja" class="nes-btn inicio">GRANJA</a>
-            <a href="#habitats" class="nes-btn inicio">HABITATS</a>
-            <a href="#capturar" class="nes-btn inicio">CAPTURAR</a>
-            <a href="#combates" class="nes-btn inicio">COMBATES</a>
-            <a href="#equipo" class="nes-btn inicio">EQUIPO</a>
-            <a href="#caja" class="nes-btn inicio">CAJA</a>
+
+       <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <a href="#granja" class="nav-btn">Granja</a>
+                <a href="#habitats" class="nav-btn">Habitats</a>
+                <a href="#capturar" class="nav-btn">Capturar</a>
+                <a href="#combates" class="nav-btn">Combates</a>
+                <a href="#equipo" class="nav-btn">Equipo</a>
+                <a href="#caja" class="nav-btn">Caja</a>
+                
+                <span style="color: #ccc;">|</span>
+                
+                <a href="#home" class="nav-btn">Salir</a>
+                
+                <button onclick="borrarPartida()" class="nav-btn" style="color: red; border: none; background: transparent; cursor: pointer; font-family: 'Press Start 2P';">Reiniciar</button>
+            </div>
+    </nav>
+ <section id="view-home">
+        <div class="logo-db-container" style="max-width: 900px; margin-top: -50px; margin-bottom: 0;">
+            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen-titulo/PokeRancher.png" 
+                 alt="Logo Pokémon Rancher" class="logo-img" style="max-height: 450px; image-rendering: pixelated; width: 100%; height: auto;">
+        </div>
+        
+        <div class="menu-inicio" style="margin-top: -30px;">
+            <a href="#granja" class="nes-btn inicio">
+                <span style="font-size: 3rem;">🚜</span>
+                GRANJA
+            </a>
+            <a href="#habitats" class="nes-btn inicio">
+                <span style="font-size: 3rem;">🏕️</span>
+                HÁBITATS
+            </a>
+            <a href="#capturar" class="nes-btn inicio">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png" style="width: 55px; height: 55px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.3));">
+                CAPTURAR
+            </a>
+            <a href="#combates" class="nes-btn inicio">
+                <span style="font-size: 3rem;">⚔️</span>
+                COMBATES
+            </a>
+            <a href="#equipo" class="nes-btn inicio">
+                <span style="font-size: 3rem;">🛡️</span>
+                EQUIPO
+            </a>
+            <a href="#caja" class="nes-btn inicio">
+                <span style="font-size: 3rem;">📦</span>
+                CAJA
+            </a>
         </div>
     </section>
    <section id="view-granja" class="page" style="display: none;">
@@ -272,9 +369,9 @@
         
         <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 30px; position: relative; height: 60px;">
             
-            <div style="text-align: center; width: 100%;">
-                <h1 style="margin: 0;">Mis Granjas</h1>
-                <p style="margin: 5px 0 0 0; color: #666; font-size: 0.8rem;">Recolecta comida para tus Pokémon</p>
+            <div style="text-align: center;">
+                <h1 style="margin: 0; font-size: 1.5rem;">Mis Granjas</h1>
+                <p style="margin: 5px 0 0 0; color: #666; font-size: 0.7rem;">Gestiona tus cultivos</p>
             </div>
 
             <div class="nes-container is-rounded" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); padding: 5px 15px; background: white; display: flex; align-items: center; gap: 10px; z-index: 10;">
@@ -349,7 +446,7 @@
 <div class="nes-container is-rounded" style="height: 200px;">
     <img id="fondo-habitat-detalle" src="" class="scene-bg">
 </div>
-        <<div class="habitat-slots" id="lista-slots-habitat">
+        <div class="habitat-slots" id="lista-slots-habitat">
     </div>
         <a href="#habitats" class="nav-btn" style="display:inline-block; margin-top:20px;">&larr; Volver</a>
     </section>
@@ -511,14 +608,14 @@
             ¿Qué quieres hacer?
         </p>
         
-        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+        <<div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
             <label>
                 <input type="radio" name="decision-captura" value="guardar" checked class="nes-radio">
                 <span>Guardar en Caja</span>
             </label>
             <label>
                 <input type="radio" name="decision-captura" value="liberar" class="nes-radio is-error">
-                <span style="color: #e74c3c;">Liberar (+XP extra)</span>
+                <span style="color: #e74c3c;">Liberar</span>
             </label>
         </div>
         
@@ -526,19 +623,32 @@
         <button class="nes-btn is-primary" onclick="finalizarCaptura()" style="width: 100%;">CONFIRMAR</button>
     </div>
 </section>
-    <section id="view-caja" class="page">
-        <h1>Mi Caja</h1>
-        <div class="box-grid">
-            <div class="box-item">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" ><br>Pikachu
+  <section id="view-caja" class="page">
+        <h1 id="titulo-caja">Mi Caja (--/--)</h1>
+        <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">Aquí están todos los Pokémon que has capturado.</p>
+        
+        <div id="lista-caja" class="box-grid" style="border-radius: 8px;">
             </div>
-            <div class="box-item">
-                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" ><br>Bulbasaur
-            </div>
-            <div class="box-item"></div><div class="box-item"></div><div class="box-item"></div>
-        </div>
         <br>
         <a href="#home" class="nav-btn" style="display:inline-block; margin-top:20px;">&larr; Volver al Inicio</a>
+    </section>
+
+    <section id="modal-opciones-caja" class="combat-modal" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8);">
+        <div class="nes-container is-rounded is-white" style="background: white; max-width: 350px; width: 90%; text-align: center;">
+            <h3 id="caja-poke-nombre" style="text-transform: capitalize;">Pokémon</h3>
+            
+            <div style="background: #f0f0f0; border-radius: 50%; width: 120px; height: 120px; display: inline-flex; align-items: center; justify-content: center; border: 4px solid #ccc; margin: 15px 0;">
+                <img id="caja-poke-img" src="" width="90" style="image-rendering: pixelated;">
+            </div>
+            
+            <p style="color: var(--azul-poke); font-weight: bold;">Nivel <span id="caja-poke-nivel"></span></p>
+            <p style="font-size: 0.7rem; color: #666; margin-bottom: 20px;" id="caja-poke-tipos"></p>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="nes-btn is-error" id="btn-liberar-caja">👋 Liberar (Adiós)</button>
+                <button class="nes-btn" onclick="document.getElementById('modal-opciones-caja').style.display='none'">Cerrar</button>
+            </div>
+        </div>
     </section>
     <!-- ==================== SECCIÓN: LISTA DE NIVELES ==================== -->
 <section id="view-combates" class="page" style="display: none;">
@@ -667,10 +777,30 @@
         </button>
     </div>
 </section>
-    <section id="view-equipo" class="page">
+   <section id="view-equipo" class="page">
         <h1>Mi Equipo</h1>
-        <p>Gestiona tu equipo de 6 Pokémon...</p>
+        <p style="margin-bottom: 25px; font-size: 0.7rem;">Selecciona tus 5 Pokémon para el combate. <br>¡El orden importa!</p>
+
+        <div id="lista-equipo" class="team-list">
+            </div>
+
+        <a href="#caja" class="nav-btn" style="display:inline-block; margin-top:20px;">&larr; VER CAJA</a>
     </section>
+
+    <section id="modal-seleccion-equipo" class="combat-modal" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8);">
+        <div class="nes-container is-rounded is-white" style="max-width: 600px; width: 90%; background: white;">
+            <h2 style="text-align: center;">Elegir Pokémon</h2>
+            <p style="text-align: center; font-size: 0.6rem; color: #666;">Selecciona un Pokémon de tu caja.</p>
+            
+            <div id="lista-candidatos-equipo" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 400px; overflow-y: auto; padding: 10px;">
+                Cargando...
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="nes-btn is-error" onclick="cerrarModalEquipo()">Cancelar</button>
+            </div>
+        </div>
+    </section>>
     <section id="modal-seleccion-habitat" class="combat-modal">
     <div class="nes-container is-rounded is-white" style="max-width: 600px; margin: 20px auto; background: white;">
         <h2 style="text-align: center;">Elige un Pokémon</h2>
@@ -725,6 +855,9 @@ window.addEventListener('hashchange', () => {
     const hash = window.location.hash;
     const viewCombates = document.getElementById('view-combates');
     
+    actualizarHUDJugador();         
+    actualizarContadoresBayas();
+
     // 1. Ocultar combates si salimos de ahí
     if (hash !== '#combates') {
         viewCombates.style.display = 'none';
@@ -738,14 +871,23 @@ window.addEventListener('hashchange', () => {
     else if (hash === '#habitats') {
         actualizarContadoresHabitat();
     } 
-    else if (hash === '#granja') {  // <--- ESTO ES LO QUE FALTABA
+    else if (hash === '#granja') {  
         cargarGranja();
+    }
+    else if (hash === '#caja') {
+        cargarCaja();
+    }
+    else if (hash === '#equipo') {
+        cargarEquipo();
     }
 });
 
 // ========== CARGAR AL INICIO (REFRESH) ==========
 window.addEventListener('DOMContentLoaded', async () => {
     await verificarEstadoJuego();
+
+    actualizarHUDJugador();       
+    actualizarContadoresBayas();
 
     try {
         const res = await fetch(`${API_URL}/tipo-efectividad`);
@@ -762,6 +904,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         cargarGranja();
     } else if (hash === '#habitats') {
         actualizarContadoresHabitat();
+    }
+    else if (hash === '#caja') {
+        cargarCaja();
     }
 });
 // ========== CARGAR NIVELES ==========
@@ -1129,6 +1274,7 @@ function volverALista() {
     
     window.location.hash = '#combates';
     cargarCombates();
+    actualizarHUDJugador();
 }
 
 // ========== ACTUALIZAR CONTADORES DE HÁBITAT ==========
@@ -1242,15 +1388,20 @@ async function abrirModalSeleccion(idHabitat) {
         const tituloModal = document.querySelector('#modal-seleccion-habitat h2');
         tituloModal.innerHTML = `Elige un Pokémon<br><span style="font-size:0.6rem; color:#666;">Admite: ${tiposPermitidosHabitat.join(', ')}</span>`;
 
-        // 2. Obtener mis Pokémon
-        const res = await fetch(`${API_URL}/jugador/pokemons`);
+        //Pedimos Pokémon y Ocupados al mismo tiempo <---
+        const [res, idsEnHabitats] = await Promise.all([
+            fetch(`${API_URL}/jugador/pokemons`),
+            obtenerIdsPokemonsEnHabitats()
+        ]);
         const pokemons = await res.json();
 
-        // 3. FILTRAR: Solo mostrar los que coinciden con los tipos permitidos
-        // (Nota: el backend envía los tipos del pokemon en el array "tipos")
+        //Filtrar compatibles Y libres <---
         const compatibles = pokemons.filter(p => {
-            // Si el pokemon tiene tipos ['Fuego', 'Volador'] y el hábitat admite ['Fuego'], es compatible.
-            return p.tipos.some(tipo => tiposPermitidosHabitat.includes(tipo));
+            const idReal = p.jugador_pokemon_id || p.id;
+            const esTipoValido = p.tipos.some(tipo => tiposPermitidosHabitat.includes(tipo));
+            const estaLibre = !idsEnHabitats.includes(idReal); // <-- Filtro de ocupados
+            
+            return esTipoValido && estaLibre;
         });
         
         let html = '';
@@ -1258,8 +1409,9 @@ async function abrirModalSeleccion(idHabitat) {
         if (compatibles.length === 0) {
             html = `
                 <div style="grid-column: 1/-1; text-align: center; color: #e74c3c;">
-                    <p>No tienes Pokémon compatibles.</p>
+                    <p>No tienes Pokémon disponibles.</p>
                     <p style="font-size: 0.7rem;">Necesitas tipos: ${tiposPermitidosHabitat.join(', ')}</p>
+                    <p style="font-size: 0.6rem; color: #666;">(Si ya tienes de este tipo, sácalos de otro hábitat primero)</p>
                 </div>`;
         } else {
             compatibles.forEach(p => {
@@ -1295,15 +1447,20 @@ async function abrirModalSeleccion(idHabitat) {
 
 
 // 2. ENVIAR EL POKÉMON SELECCIONADO AL SERVIDOR
+// 2. ENVIAR EL POKÉMON SELECCIONADO AL SERVIDOR
 async function enviarPokemonAlHabitat(jugadorPokemonId) {
     if (!habitatSeleccionadoId) return;
 
-    // Efecto visual de "cargando"
+    // IMPORTANTE: Guardamos el ID en una variable local porque 
+    // cerrarModalSeleccion() va a borrar la variable global.
+    const idParaRecargar = habitatSeleccionadoId;
+
+    // Efecto visual
     const lista = document.getElementById('lista-candidatos-habitat');
     lista.innerHTML = '<p style="text-align:center;">Asignando...</p>';
 
     try {
-        const res = await fetch(`${API_URL}/jugador/habitats/${habitatSeleccionadoId}/asignar`, {
+        const res = await fetch(`${API_URL}/jugador/habitats/${idParaRecargar}/asignar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ jugador_pokemon_id: jugadorPokemonId })
@@ -1313,18 +1470,16 @@ async function enviarPokemonAlHabitat(jugadorPokemonId) {
 
         if (data.error) {
             alert('❌ Error: ' + data.error);
-            // Volvemos a cargar la lista por si quiere intentar con otro
-            abrirModalSeleccion(habitatSeleccionadoId);
+            // Si falló, volvemos a abrir la selección para ese hábitat
+            abrirModalSeleccion(idParaRecargar);
         } else {
-            // ¡ÉXITO!
             alert('✅ ¡Pokémon añadido al hábitat!');
             
-            // 1. Cerramos el modal primero
+            // 1. Cerramos el modal (esto borra habitatSeleccionadoId global)
             cerrarModalSeleccion();
             
-            // 2. CLAVE: Recargamos los huecos del hábitat inmediatamente
-            // Usamos 'await' para asegurar que se pinten antes de seguir
-            await cargarHabitat(habitatSeleccionadoId); 
+            // 2. Recargamos usando la VARIABLE LOCAL que guardamos al principio
+            await cargarHabitat(idParaRecargar); 
             
             // 3. Actualizamos el contador (ej: 2/6)
             actualizarContadoresHabitat(); 
@@ -1625,14 +1780,20 @@ async function guardarApodo() {
     }
 }
 
+// Variable global para controlar el reloj y que no se vuelva loco
+let intervaloGranja = null;
+
 async function cargarGranja() {
+    // 1. LIMPIEZA: Si ya había un reloj corriendo, lo paramos para reiniciarlo
+    if (intervaloGranja) clearInterval(intervaloGranja);
+
     const nivelesDesbloqueo = { 2: 3, 3: 6, 4: 12, 5: 18, 6: 25 };
 
     try {
-        // 1. ACTUALIZAR CONTADOR DE ARRIBA A LA DERECHA (Inmediatamente)
+        // --- Actualizar Contadores (Inventario) ---
         await actualizarContadoresBayas();
 
-        // 2. CARGAR PARCELAS
+        // --- Cargar Datos de Granja ---
         const res = await fetch(`${API_URL}/jugador/granjas`);
         if (!res.ok) {
             document.getElementById('lista-granjas').innerHTML = '<p>Error de conexión.</p>';
@@ -1649,6 +1810,7 @@ async function cargarGranja() {
             return;
         }
 
+        // --- RENDERIZAR PARCELAS ---
         listaGranjas.forEach(g => {
             const numero = g.numero_granja;
             const imagenGranja = "https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png";
@@ -1658,7 +1820,7 @@ async function cargarGranja() {
             let estiloContenedor = 'background: white;'; 
 
             if (!g.desbloqueada) {
-                // BLOQUEADO
+                // --- BLOQUEADO ---
                 const nivelReq = nivelesDesbloqueo[numero] || 30;
                 estiloContenedor = 'background: #e0e0e0; color: #777;'; 
 
@@ -1675,7 +1837,7 @@ async function cargarGranja() {
                 botonAccion = `<button class="nes-btn is-disabled" style="width: 100%; font-size: 0.7rem; margin-top: 10px;">BLOQUEADO</button>`;
 
             } else {
-                // DESBLOQUEADO
+                // --- DESBLOQUEADO ---
                 imagenHTML = `
                     <div style="width: 100%; height: 120px; display:flex; align-items:center; justify-content:center;">
                         <img src="${imagenGranja}" style="height: 100%; width: auto; filter: drop-shadow(0 4px 0 rgba(0,0,0,0.2));">
@@ -1683,20 +1845,26 @@ async function cargarGranja() {
                 `;
 
                 if (g.puede_recolectar) {
+                    // LISTO PARA RECOLECTAR
                     botonAccion = `
                         <button class="nes-btn is-warning" onclick="recolectar(${g.granja_id})" style="width: 100%; font-size: 0.7rem; margin-top: 10px; padding: 5px;">
                             RECOLECTAR (+10 🍒)
                         </button>`;
                 } else {
-                    let textoTiempo = "Creciendo...";
-                    if (g.tiempo_restante > 0) {
-                        const minutos = Math.floor(g.tiempo_restante / 60);
-                        const segundos = Math.floor(g.tiempo_restante % 60);
-                        textoTiempo = `⏳ ${minutos}:${segundos.toString().padStart(2, '0')}`;
-                    }
+                    // CRECIENDO (Aquí está la magia del timer)
+                    let segundosRestantes = Math.floor(g.tiempo_restante);
+                    
+                    // Formato inicial MM:SS
+                    const min = Math.floor(segundosRestantes / 60);
+                    const seg = segundosRestantes % 60;
+                    const textoInicial = `⏳ ${min}:${seg.toString().padStart(2, '0')}`;
+
+                    // Agregamos la clase "granja-timer" y el atributo "data-segundos"
                     botonAccion = `
-                        <button class="nes-btn is-primary" style="width: 100%; font-size: 0.7rem; margin-top: 10px; opacity: 0.8; cursor: default;">
-                            ${textoTiempo}
+                        <button class="nes-btn is-primary granja-timer" 
+                                data-segundos="${segundosRestantes}"
+                                style="width: 100%; font-size: 0.7rem; margin-top: 10px; opacity: 0.8; cursor: default;">
+                            ${textoInicial}
                         </button>`;
                 }
             }
@@ -1711,6 +1879,47 @@ async function cargarGranja() {
                 </div>
             `;
         });
+
+        // --- INICIAR EL RELOJ EN VIVO ---
+        intervaloGranja = setInterval(() => {
+            const timers = document.querySelectorAll('.granja-timer');
+            
+            // Si no hay timers activos, paramos el reloj para ahorrar recursos
+            if (timers.length === 0) {
+                clearInterval(intervaloGranja);
+                return;
+            }
+
+            let algunCambio = false;
+
+            timers.forEach(btn => {
+                let segs = parseInt(btn.getAttribute('data-segundos'));
+                
+                if (segs > 0) {
+                    segs--; // Restamos 1 segundo
+                    btn.setAttribute('data-segundos', segs); // Guardamos el nuevo valor
+                    
+                    // Actualizamos texto visualmente
+                    const m = Math.floor(segs / 60);
+                    const s = segs % 60;
+                    btn.innerHTML = `⏳ ${m}:${s.toString().padStart(2, '0')}`;
+                } else {
+                    // ¡SE ACABÓ EL TIEMPO!
+                    // Recargamos toda la granja para que aparezca el botón de "RECOLECTAR"
+                    // (Solo lo hacemos una vez para evitar bucles infinitos)
+                    if (!btn.classList.contains('finalizado')) {
+                        btn.classList.add('finalizado');
+                        algunCambio = true;
+                    }
+                }
+            });
+
+            // Si algún contador llegó a 0, recargamos la vista completa
+            if (algunCambio) {
+                cargarGranja();
+            }
+
+        }, 1000); // Se ejecuta cada 1000ms (1 segundo)
 
     } catch (error) { console.error('Error cargando granja:', error); }
 }
@@ -1742,6 +1951,7 @@ async function recolectar(granjaId) {
 
             // 2. Recargar las parcelas para reiniciar el ciclo
             await cargarGranja(); 
+            actualizarHUDJugador();
         }
 
     } catch (error) {
@@ -1839,6 +2049,7 @@ async function realizarEvolucion() {
             const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
             const dataPoke = await resPoke.json();
             actualizarBarraXP(dataPoke);
+            actualizarHUDJugador();
         }
     } catch (error) {
         console.error(error);
@@ -1954,6 +2165,326 @@ async function finalizarCaptura() {
 
     // Volver al menú de zonas para seguir capturando
     window.location.hash = '#capturar';
+}
+
+
+// --- FUNCIÓN GLOBAL: ACTUALIZAR HUD DEL JUGADOR (Nivel/XP) ---
+// --- FUNCIÓN GLOBAL: ACTUALIZAR HUD DEL JUGADOR ---
+// --- FUNCIÓN GLOBAL: ACTUALIZAR HUD DEL JUGADOR (Nivel/XP) ---
+async function actualizarHUDJugador() {
+    try {
+        // 1. FORZAMOS VERIFICACIÓN: Le decimos al backend "revisa si debo subir de nivel"
+        // (Esto arregla el problema de tener 270 XP y seguir en Nivel 1)
+        await fetch(`${API_URL}/jugador/verificar-nivel`, { method: 'POST' });
+
+        // 2. OBTENEMOS DATOS PRE-CALCULADOS
+        const res = await fetch(`${API_URL}/jugador/nivel`);
+        
+        if (res.ok) {
+            const data = await res.json();
+            
+            // data.nivel (ej: 3)
+            // data.xp_en_nivel_actual (ej: 70)
+            // data.xp_para_subir (ej: 100)
+            
+            // 3. ACTUALIZAR EL HTML
+            const elNivel = document.getElementById('hud-nivel-num');
+            const elTexto = document.getElementById('hud-xp-texto');
+            const elBarra = document.getElementById('hud-xp-bar');
+            
+            if (elNivel) elNivel.textContent = data.nivel;
+            if (elTexto) elTexto.textContent = `${data.xp_en_nivel_actual} / ${data.xp_para_subir}`;
+            
+            if (elBarra) {
+                elBarra.value = data.xp_en_nivel_actual;
+                elBarra.max = data.xp_para_subir;
+            }
+            
+            console.log(`⭐ HUD: Nivel ${data.nivel} | XP Barra: ${data.xp_en_nivel_actual}/${data.xp_para_subir}`);
+        }
+    } catch (error) {
+        console.error("Error actualizando HUD:", error);
+    }
+}
+
+// ==================== FUNCIONES DE LA CAJA ====================
+let pokemonsEnCaja = []; 
+let pokemonCajaSeleccionado = null;
+
+async function cargarCaja() {
+    console.log('📦 Cargando Caja...');
+    const contenedor = document.getElementById('lista-caja');
+    const titulo = document.getElementById('titulo-caja');
+    
+    contenedor.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">Cargando...</p>';
+
+    try {
+        // 1. Obtener TODOS mis Pokémon y los IDs de los que están ocupados
+        const [resPokemons, idsEnHabitats] = await Promise.all([
+            fetch(`${API_URL}/jugador/pokemons`),
+            obtenerIdsPokemonsEnHabitats()
+        ]);
+        
+        const todosLosPokemons = await resPokemons.json();
+
+        // 2. Obtener capacidad máxima de inventario
+        const resNivel = await fetch(`${API_URL}/jugador/nivel`);
+        const datosNivel = await resNivel.json();
+        const capacidadMax = datosNivel.slots_inventario || 10;
+
+        // 3. FILTRAR: Solo nos quedamos con los que NO están en hábitats
+        pokemonsEnCaja = todosLosPokemons.filter(p => {
+            const id = p.jugador_pokemon_id || p.id;
+            return !idsEnHabitats.includes(id); // Si NO está en la lista de ocupados, se queda en la caja
+        });
+
+        // 4. Actualizar título (Mostramos el total de Pokémon vs Capacidad Máxima)
+        titulo.textContent = `Mi Caja (${todosLosPokemons.length}/${capacidadMax})`;
+
+        // 5. Renderizar
+        if (pokemonsEnCaja.length === 0) {
+            contenedor.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; padding: 20px;">Tu caja está vacía o todos tus Pokémon están entrenando en hábitats.</p>';
+            return;
+        }
+
+        contenedor.innerHTML = pokemonsEnCaja.map(p => `
+            <div class="box-item nes-pointer" style="cursor: pointer;" onclick="verDetalleCaja(${p.jugador_pokemon_id || p.id})">
+                <img src="${p.imagen_url}" width="60" style="image-rendering: pixelated; margin-bottom: 5px;"><br>
+                <strong style="text-transform: capitalize;">${p.apodo || p.nombre}</strong><br>
+                <span style="color: var(--azul-poke);">Nvl ${p.nivel}</span>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error cargando la caja:', error);
+        contenedor.innerHTML = '<p style="color: red; text-align: center; grid-column: 1/-1;">Error de conexión.</p>';
+    }
+}
+
+// Mostrar modal de detalle al hacer clic en un Pokémon de la caja
+function verDetalleCaja(id) {
+    const p = pokemonsEnCaja.find(poke => poke.jugador_pokemon_id === id);
+    if (!p) return;
+
+    pokemonCajaSeleccionado = p;
+    document.getElementById('caja-poke-nombre').textContent = p.apodo || p.nombre;
+    document.getElementById('caja-poke-img').src = p.imagen_url;
+    document.getElementById('caja-poke-nivel').textContent = p.nivel;
+    document.getElementById('caja-poke-tipos').textContent = p.tipos ? p.tipos.join(' / ') : 'Desconocido';
+    
+    document.getElementById('modal-opciones-caja').style.display = 'flex';
+}
+
+// Acción de liberar desde la caja
+document.getElementById('btn-liberar-caja').onclick = async () => {
+    if (!pokemonCajaSeleccionado) return;
+    const nombre = pokemonCajaSeleccionado.apodo || pokemonCajaSeleccionado.nombre;
+
+    if (!confirm(`¿Estás 100% seguro de liberar a ${nombre}?\n\nNO podrás recuperarlo.`)) return;
+
+    try {
+        const res = await fetch(`${API_URL}/jugador/pokemons/${pokemonCajaSeleccionado.jugador_pokemon_id}`, { method: 'DELETE' });
+        const data = await res.json();
+        
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert(data.mensaje); // "Pikachu ha sido liberado"
+            document.getElementById('modal-opciones-caja').style.display = 'none';
+            cargarCaja(); // Recargar la vista de la caja automáticamente
+        }
+    } catch (e) { 
+        console.error(e); 
+        alert('Error de conexión');
+    }
+}
+
+// ==================== FUNCIONES DE EQUIPO ====================
+let posicionEquipoSeleccionada = null;
+
+async function cargarEquipo() {
+    console.log('⚔️ Cargando equipo...');
+    const contenedor = document.getElementById('lista-equipo');
+    contenedor.innerHTML = '<p>Cargando...</p>';
+
+    try {
+        const res = await fetch(`${API_URL}/jugador/equipo`);
+        // Si no hay equipo, la API devuelve error o vacío, lo manejamos.
+        const equipo = res.ok ? await res.json() : [];
+        const equipoData = Array.isArray(equipo) ? equipo : []; // Aseguramos que sea array
+        
+        let html = '';
+        
+        // Creamos SIEMPRE 5 slots
+        for (let i = 1; i <= 5; i++) {
+            // Buscamos si hay un Pokémon en esta posición específica
+            const pokemonEnSlot = equipoData.find(p => p.posicion === i);
+
+            if (pokemonEnSlot) {
+                // SLOT OCUPADO
+                html += `
+                <div class="team-slot">
+                    <div class="team-info">
+                        <span style="font-weight: bold; color: #aaa; font-size: 0.9rem; margin-right: 5px;">#${i}</span>
+                        <img src="${pokemonEnSlot.imagen_url}" width="50" style="image-rendering: pixelated;">
+                        <div>
+                            <div class="team-name">${pokemonEnSlot.apodo || pokemonEnSlot.nombre}</div>
+                            <div class="team-lvl">Nivel ${pokemonEnSlot.nivel}</div>
+                        </div>
+                    </div>
+                    <button class="nes-btn is-error" style="font-size: 0.6rem; padding: 2px 8px;" onclick="quitarDelEquipo(${i})" title="Quitar del equipo">X</button>
+                </div>
+                `;
+            } else {
+                // SLOT VACÍO
+                html += `
+                <div class="team-slot slot-empty" onclick="abrirModalEquipo(${i})">
+                    <span style="font-weight: bold; margin-right: 10px;">#${i}</span> + AÑADIR POKÉMON
+                </div>
+                `;
+            }
+        }
+        
+        contenedor.innerHTML = html;
+
+    } catch (error) {
+        console.error(error);
+        contenedor.innerHTML = '<p>Error de conexión al cargar equipo.</p>';
+    }
+}
+
+async function abrirModalEquipo(pos) {
+    posicionEquipoSeleccionada = pos;
+    document.getElementById('modal-seleccion-equipo').style.display = 'flex';
+    
+    const contenedor = document.getElementById('lista-candidatos-equipo');
+    contenedor.innerHTML = 'Cargando...';
+    
+    try {
+        // Pedimos TODOS los pokemons y LOS DEL EQUIPO al mismo tiempo
+        const [resPokemons, resEquipo] = await Promise.all([
+            fetch(`${API_URL}/jugador/pokemons`),
+            fetch(`${API_URL}/jugador/equipo`)
+        ]);
+        
+        const todos = await resPokemons.json();
+        const equipoActual = resEquipo.ok ? await resEquipo.json() : [];
+        const equipoData = Array.isArray(equipoActual) ? equipoActual : [];
+        
+        // Filtramos para NO mostrar los que ya están en el equipo
+        const idsEnEquipo = equipoData.map(p => p.jugador_pokemon_id);
+        const disponibles = todos.filter(p => !idsEnEquipo.includes(p.jugador_pokemon_id));
+        
+        if (disponibles.length === 0) {
+            contenedor.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No tienes más Pokémon disponibles en la Caja.</p>';
+            return;
+        }
+        
+        contenedor.innerHTML = disponibles.map(p => `
+            <div style="border: 2px solid #ccc; padding: 5px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: white;" 
+                 class="nes-pointer" onclick="asignarAlEquipo(${p.jugador_pokemon_id})">  
+                <img src="${p.imagen_url}" width="40" style="image-rendering: pixelated;">
+                <div style="text-align: left;">
+                    <div style="font-size: 0.7rem; font-weight: bold; text-transform: capitalize;">${p.apodo || p.nombre}</div>
+                    <div style="font-size: 0.6rem; color: var(--azul-poke);">Nvl ${p.nivel}</div>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function cerrarModalEquipo() {
+    document.getElementById('modal-seleccion-equipo').style.display = 'none';
+    posicionEquipoSeleccionada = null;
+}
+
+async function asignarAlEquipo(idPokemon) {
+    try {
+        // Mandamos a guardar en la base de datos
+        const res = await fetch(`${API_URL}/jugador/equipo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jugador_pokemon_id: idPokemon, posicion: posicionEquipoSeleccionada })
+        });
+        
+        const data = await res.json();
+        if (data.error) {
+            alert(data.error);
+        } else {
+            cerrarModalEquipo();
+            cargarEquipo(); // Recargamos para que se vea el nuevo pokemon
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Error de conexión");
+    }
+}
+
+async function quitarDelEquipo(posicion) {
+    try {
+        // Mandamos a borrar de la base de datos
+        const res = await fetch(`${API_URL}/jugador/equipo/${posicion}`, { method: 'DELETE' });
+        const data = await res.json();
+        
+        if (data.error) {
+            alert(data.error);
+        } else {
+            cargarEquipo(); // Recargamos para que el slot vuelva a quedar "Vacío"
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+// NUEVA FUNCIÓN: Busca qué Pokémon ya están asignados a hábitats
+async function obtenerIdsPokemonsEnHabitats() {
+    let idsOcupados = [];
+    try {
+        // Consultamos los 6 hábitats al mismo tiempo para ser rápidos
+        const promesas = [1,2,3,4,5,6].map(id => 
+            fetch(`${API_URL}/jugador/habitats/${id}/pokemons`).then(r => r.ok ? r.json() : [])
+        );
+        const resultados = await Promise.all(promesas);
+        
+        resultados.forEach(lista => {
+            lista.forEach(p => {
+                if (p) { // Si el slot no está vacío
+                    idsOcupados.push(p.jugador_pokemon_id || p.id);
+                }
+            });
+        });
+    } catch (e) {
+        console.error("Error obteniendo ocupados:", e);
+    }
+    return idsOcupados;
+}
+
+// ==================== BORRAR PARTIDA (CRUD: DELETE JUGADORES) ====================
+async function borrarPartida() {
+    // 1. Doble confirmación de seguridad para evitar borrados accidentales
+    const seguro = confirm("⚠️ ¿Estás 100% seguro de que quieres BORRAR TU PARTIDA?\n\nPerderás todos tus Pokémon, niveles y granjas para siempre.");
+    
+    if (!seguro) return;
+
+    try {
+        // 2. Ejecutar el DELETE en la API
+        const res = await fetch(`${API_URL}/jugador`, { method: 'DELETE' });
+        
+        if (res.ok) {
+            alert("Partida borrada. Comenzarás tu aventura desde cero.");
+            // 3. Volver al inicio y recargar la página para que salte la pantalla de elegir Starter
+            window.location.hash = "#home";
+            location.reload(); 
+        } else {
+            const data = await res.json();
+            alert("Error al intentar borrar la partida: " + (data.error || "Desconocido"));
+        }
+    } catch (error) {
+        console.error("Error de conexión al borrar partida:", error);
+        alert("Error de conexión con el servidor.");
+    }
 }
 </script>
 

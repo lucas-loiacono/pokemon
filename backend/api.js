@@ -32,7 +32,8 @@ const {
   getJugadorInventario,
   updateJugadorStats,
   setApodo,
-  eliminarPokemon  
+  eliminarPokemon,
+  borrarJugador  
 } = require('./src/scripts/jugadores');
 
 const {
@@ -240,6 +241,22 @@ app.delete('/api/jugador/pokemons/:id', async (req, res) => {
   }
 
   res.json(result);
+});
+
+// Borrar jugador (Reiniciar Partida - DELETE CRUD)
+app.delete('/api/jugador', async (req, res) => {
+  try {
+    const result = await borrarJugador();
+
+    if (result.error) {
+      return res.status(404).json(result);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error al borrar jugador:', error);
+    res.status(500).json({ error: 'Error interno del servidor al borrar la partida' });
+  }
 });
 
 // ==================== HÁBITATS ====================

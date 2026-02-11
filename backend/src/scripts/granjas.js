@@ -25,10 +25,10 @@ async function getJugadorGranjas() {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Obtener nivel del jugador y slots disponibles
   const config = await dbClient.query(`
     SELECT 
       j.nivel,
+      j.xp,
       gsc.slots_disponibles
     FROM jugadores j
     INNER JOIN granjas_slots_config gsc ON j.nivel = gsc.nivel_jugador
@@ -39,7 +39,7 @@ async function getJugadorGranjas() {
     return { error: 'Jugador configuration not found' };
   }
 
-  const { nivel, slots_disponibles } = config.rows[0];
+  const { nivel, xp, slots_disponibles } = config.rows[0];
 
   // 2. Obtener todas las granjas y marcar cuáles están desbloqueadas
   const result = await dbClient.query(`
@@ -78,8 +78,9 @@ async function getJugadorGranjas() {
     ORDER BY gn.granja_id
   `, [jugadorId, FRUTA_ID, slots_disponibles]);
   
-  return {
+ return {
     nivel: nivel,
+    xp: xp, 
     slots_disponibles: slots_disponibles,
     granjas: result.rows
   };
