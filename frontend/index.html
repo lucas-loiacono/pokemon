@@ -1642,15 +1642,14 @@ async function accionAlimentar() {
         if (data.error) {
             alert('❌ ' + (data.mensaje || data.error));
         } else {
-            // No confíes en el número que devuelve el botón, 
-            // mejor pregúntale a la base de datos el total real:
-            await actualizarContadoresBayas();
+            // Obligamos a la pantalla de cuidados a leer el nuevo total de Neon
+            await actualizarContadoresBayas(); 
             
-            // Actualizar la barra de progreso del Pokémon
+            // Actualizamos la barra de nivel del Pokémon
             const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
             const dataPoke = await resPoke.json();
             actualizarBarraXP(dataPoke);
-            
+        
             if (data.subio_nivel) {
                 alert(`🎉 ¡Subió de nivel!`);
                 await verificarEvolucionUI(pokemonInteraccionId);
@@ -1934,16 +1933,14 @@ async function recolectar(granjaId) {
 
         if (data.error) {
             alert(data.mensaje || data.error);
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
         } else {
-            console.log("✅ Recolectado. Actualizando interfaz...");
-            // 1. Actualizamos los números globales
-            await actualizarContadoresBayas();
-            // 2. Recargamos la vista de las parcelas para que el timer se resetee
-            await cargarGranja(); 
-            // 3. Actualizamos la barra de EXP del jugador
-            await actualizarHUDJugador();
+            console.log("✅ Recolectado con éxito");
+            // Esperamos un instante y forzamos la recarga de todo
+            setTimeout(async () => {
+                await actualizarContadoresBayas(); // Actualiza el número
+                await cargarGranja();             // Resetea el timer de la parcela
+                await actualizarHUDJugador();     // Actualiza tu nivel/XP
+            }, 300);
         }
     } catch (error) {
         console.error(error);
@@ -1954,31 +1951,23 @@ async function recolectar(granjaId) {
 // --- FUNCIÓN MAESTRA PARA ACTUALIZAR CONTADORES ---
 async function actualizarContadoresBayas() {
     try {
-        // Usamos un parámetro aleatorio (?t=...) para que el navegador no nos de datos viejos
+        // El "?t=" + Date.now() es el "descongelante"
         const res = await fetch(`${API_URL}/jugador/inventario?t=${Date.now()}`);
         if (res.ok) {
             const inventario = await res.json();
             
-            // Buscamos la Baya (ID 1) en tu inventario de Neon
+            // Buscamos la Baya (ID 1)
             const bayas = inventario.find(i => i.fruta_id === 1 || i.id === 1);
             const cantidadReal = bayas ? bayas.cantidad : 0;
 
-            console.log("🔄 Sincronizando inventario:", cantidadReal);
+            console.log("🔄 Cantidad real detectada:", cantidadReal);
 
-            // Actualizamos TODOS los lugares donde aparece el número de bayas
-            const elementos = [
-                document.getElementById('contador-bayas-granja'), // Pantalla Granjas
-                document.getElementById('int-bayas-qty')          // Pantalla Alimentar
-            ];
+            // ACTUALIZACIÓN MANUAL FORZOSA
+            const cGranja = document.getElementById('contador-bayas-granja');
+            const cAlimentar = document.getElementById('int-bayas-qty');
 
-            elementos.forEach(el => {
-                if (el) {
-                    el.textContent = cantidadReal;
-                    // Efecto visual: brilla en naranja cuando cambia el número
-                    el.style.color = '#e67e22';
-                    setTimeout(() => el.style.color = '', 400);
-                }
-            });
+            if (cGranja) cGranja.innerText = cantidadReal;
+            if (cAlimentar) cAlimentar.innerText = cantidadReal;
             
             return cantidadReal;
         }
@@ -1986,7 +1975,6 @@ async function actualizarContadoresBayas() {
         console.error("❌ Error de sincronización:", error);
     }
 }
-
 // 4. CERRAR
 function cerrarInteraccion() {
     // Volvemos al habitat anterior (usando la variable global que creamos antes)
