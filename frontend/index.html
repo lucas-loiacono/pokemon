@@ -1877,7 +1877,7 @@ async function cargarGranja() {
         });
 
         // --- INICIAR EL RELOJ EN VIVO ---
-        intervaloGranja = setInterval(() => {
+        intervaloGranja = setInterval(async () => {
             const timers = document.querySelectorAll('.granja-timer');
             
             // Si no hay timers activos, paramos el reloj para ahorrar recursos
@@ -1885,6 +1885,9 @@ async function cargarGranja() {
                 clearInterval(intervaloGranja);
                 return;
             }
+
+            // Actualizar contador de bayas cada segundo
+            await actualizarContadoresBayas();
 
             let algunCambio = false;
 
@@ -1915,7 +1918,7 @@ async function cargarGranja() {
                 cargarGranja();
             }
 
-        }, 1000); // Se ejecuta cada 1000ms (1 segundo)
+        }, 1000);
 
     } catch (error) { console.error('Error cargando granja:', error); }
 }
