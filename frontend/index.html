@@ -327,7 +327,7 @@
                 <span style="color: #ccc;">|</span>
                 
                 <a href="#home" class="nav-btn">Salir</a>
-                
+
                 <button onclick="borrarPartida()" class="nav-btn" style="color: red; border: none; background: transparent; cursor: pointer; font-family: 'Press Start 2P';">Reiniciar</button>
             </div>
     </nav>
@@ -840,21 +840,219 @@
         </button>
     </div>
 </section>
-    <script>
-const API_URL = 'https://pokemon-rancher-2c7u.onrender.com/api';
+
+<section id="modal-tutorial" class="combat-modal" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); z-index: 99999;">
+    <div class="nes-container is-rounded is-white" style="background: white; max-width: 600px; width: 95%; text-align: center; border: 4px solid #f1c40f;">
+        <div style="font-size: 2.5rem; margin-bottom: 5px; animation: bounce 2s infinite;">💡</div>
+        <h3 id="tut-titulo" style="color: var(--azul-poke); margin-bottom: 15px; font-size: 1.2rem;">Título</h3>
+        
+        <div id="tut-texto" style="text-align: left; font-size: 0.75rem; line-height: 1.8; color: #333; margin-bottom: 25px; padding: 0 10px; max-height: 50vh; overflow-y: auto; overflow-x: hidden;">
+            </div>
+
+        <button class="nes-btn is-warning" style="width: 100%; font-size: 0.9rem; padding: 10px;" onclick="document.getElementById('modal-tutorial').style.display='none'">¡Entendido!</button>
+    </div>
+</section>
+
+<button onclick="revisarTutorial(window.location.hash, true)" 
+        class="nes-btn is-warning" 
+        style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; padding: 10px 15px; font-size: 1.5rem; line-height: 1; box-shadow: 0 4px 8px rgba(0,0,0,0.3);"
+        title="Ver información de esta zona">
+    ❓
+</button>
+
+<script>
+
+//const API_URL = 'https://pokemon-rancher-2c7u.onrender.com/api';
+const API_URL = 'http://localhost:3000/api'
 let entrenadores = [];
 let entrenadorSeleccionado = null;
 let resultadoCombate = null;
 let efectividades = [];
 let equipoJugador = [];
 
+
 console.log('✅ Script de combates cargado');
+
+
+
+// Textos de los tutoriales para cada pantalla
+const textosTutoriales = {
+    '#granja': {
+        titulo: '🚜 Guía de la Granja',
+        texto: `
+            <p style="text-align: center;">Las granjas son tu motor principal de recursos. Aquí cultivas tus <b>Bayas</b>.</p>
+            <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Jugador:</b> Cada vez que recolectas, ganas <b>+20 XP</b> para tu nivel personal.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Pokémon:</b> Cada baya que le des a un Pokémon le otorgará <b>+20 XP</b>.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div style="width: 100%;"><b>Desbloqueos de Parcelas:</b>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; color: #444; font-size: 0.65rem; background: #f0f0f0; padding: 10px; border-radius: 5px; border: 2px solid #ccc;">
+                            <div>🌱 Parcela 2: Nivel 3</div>
+                            <div>🌱 Parcela 3: Nivel 6</div>
+                            <div>🌱 Parcela 4: Nivel 12</div>
+                            <div>🌱 Parcela 5: Nivel 18</div>
+                            <div style="grid-column: 1 / -1; text-align: center; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 5px; margin-top: 2px;">
+                                🌱 Parcela 6: Nivel 25
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        `
+    },
+    '#habitats': {
+        titulo: '🏕️ Mis Hábitats',
+        texto: `
+            <p style="text-align: center;">Aquí descansan y entrenan tus Pokémon capturados.</p>
+            <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div style="width: 100%;"><b>Compatibilidad:</b> El <b>Tipo</b> de tu Pokémon debe coincidir con el hábitat. Aceptan estos tipos:
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; color: #444; font-size: 0.55rem; background: #f0f0f0; padding: 10px; border-radius: 5px; border: 2px solid #ccc;">
+                            <div>🌾 <b>Pradera:</b> Normal, Eléctrico, Psíquico.</div>
+                            <div>🌲 <b>Bosque:</b> Planta, Bicho, Veneno, Hada.</div>
+                            <div>💧 <b>Agua:</b> Agua, Volador.</div>
+                            <div>⚙️ <b>Acero:</b> Roca, Lucha, Acero, Siniestro.</div>
+                            <div>🏜️ <b>Desierto:</b> Tierra, Fuego, Fantasma.</div>
+                            <div>❄️ <b>Hielo:</b> Hielo, Dragón.</div>
+                        </div>
+                    </div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Capacidad:</b> Tienes un máximo de <b>6 Pokémon</b> por hábitat.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Cuidados:</b> Toca un Pokémon para darle bayas, cambiarle el nombre o <b>Evolucionarlo</b>.</div>
+                </li>
+            </ul>
+        `
+    },
+    '#capturar': {
+        titulo: '🎯 Zona de Captura',
+        texto: `
+            <p style="text-align: center;">Explora diferentes entornos para encontrar nuevos compañeros.</p>
+            <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div style="width: 100%;"><b>Zonas:</b> Los Pokémon aparecen según su tipo:
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; color: #444; font-size: 0.55rem; background: #f0f0f0; padding: 10px; border-radius: 5px; border: 2px solid #ccc;">
+                            <div>🌾 <b>Pradera:</b> Normal, Eléctrico, Psíquico.</div>
+                            <div>🌲 <b>Bosque:</b> Planta, Bicho, Veneno, Hada.</div>
+                            <div>🏖️ <b>Playa:</b> Agua, Volador.</div>
+                            <div>🦇 <b>Cueva:</b> Roca, Lucha, Acero, Siniestro.</div>
+                            <div>🏜️ <b>Desierto:</b> Tierra, Fuego, Fantasma.</div>
+                            <div>❄️ <b>Nieve:</b> Hielo, Dragón.</div>
+                        </div>
+                    </div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Lanzamiento:</b> Todos los Pokémon atrapados empezarán siempre en <b>Nivel 1</b>.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Inventario:</b> Si tu Caja está llena, no podrás lanzar Pokéballs. ¡Libera espacio primero!</div>
+                </li>
+            </ul>
+        `
+    },
+    '#combates': {
+        titulo: '⚔️ Liga Pokémon',
+        texto: `
+            <p style="text-align: center;">¡Demuestra que eres el mejor entrenador!</p>
+            <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>El Poder:</b> Se calcula multiplicando: <br><b>Nivel × Ventaja de Tipo</b>.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Regla de 3:</b> Son duelos de 5 vs 5. Gana <b>3 duelos individuales</b> para llevarte la victoria total.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>Progresión:</b> Sube tu nivel de jugador para desbloquear rivales más difíciles.</div>
+                </li>
+            </ul>
+        `
+    },
+    '#equipo': {
+        titulo: '🛡️ Tu Equipo de Combate',
+        texto: `
+            <p style="text-align: center;">Prepara tu formación táctica antes de ir a pelear.</p>
+            <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div><b>El Orden es vital:</b> Tu Pokémon <b>#1</b> peleará contra el #1 del rival, el #2 contra el #2, etc.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div>¡Organiza tus tipos estratégicamente según el equipo del rival al que te vayas a enfrentar!</div>
+                </li>
+            </ul>
+        `
+    },
+    '#caja': {
+        titulo: '📦 La Caja PC',
+        texto: `
+            <p style="text-align: center;">El almacenamiento central de tu aventura.</p>
+            <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div>Aquí descansan los Pokémon que no caben en tu equipo ni están entrenando en los hábitats.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div>La capacidad máxima aumenta a medida que subes tu nivel de Jugador.</div>
+                </li>
+                <li style="display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; text-align: left;">
+                    <span style="margin-right: 10px; margin-top: 2px;">▪</span>
+                    <div>Toca un Pokémon para ver sus datos en detalle o <b>Liberarlo</b> para hacer espacio.</div>
+                </li>
+            </ul>
+        `
+    }
+};
+// Función maestra
+// Función maestra (Actualizada para el botón manual)
+function revisarTutorial(hashPantalla, forzar = false) {
+    const tutorial = textosTutoriales[hashPantalla];
+    
+    if (tutorial) {
+        const yaLoVio = localStorage.getItem('visto_' + hashPantalla);
+        
+        // Si NO lo vio, o si apretó el botón de Ayuda (forzar = true)...
+        if (!yaLoVio || forzar) {
+            document.getElementById('tut-titulo').textContent = tutorial.titulo;
+            document.getElementById('tut-texto').innerHTML = tutorial.texto; 
+            document.getElementById('modal-tutorial').style.display = 'flex';
+            
+            // Guardamos que ya lo vio SOLO si entró naturalmente
+            if (!forzar) {
+                localStorage.setItem('visto_' + hashPantalla, 'true');
+            }
+        }
+    } else if (forzar) {
+        // Por si aprietan ayuda en la pantalla de inicio o en un lugar sin cartel
+        alert("¡Explora las diferentes zonas desde el menú!");
+    }
+}
 
 /// ========== DETECTAR CAMBIO DE HASH (NAVEGACIÓN) ==========
 window.addEventListener('hashchange', () => {
     const hash = window.location.hash;
     const viewCombates = document.getElementById('view-combates');
     
+    revisarTutorial(hash);
     actualizarHUDJugador();         
     actualizarContadoresBayas();
 
@@ -900,7 +1098,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (hash === '#combates') {
         document.getElementById('view-combates').style.display = 'block';
         cargarCombates();
-    } else if (hash === '#granja') { // <--- ESTO TAMBIÉN FALTABA
+    } else if (hash === '#granja') { 
         cargarGranja();
     } else if (hash === '#habitats') {
         actualizarContadoresHabitat();
@@ -2450,20 +2648,22 @@ async function obtenerIdsPokemonsEnHabitats() {
     return idsOcupados;
 }
 
-// ==================== BORRAR PARTIDA (CRUD: DELETE JUGADORES) ====================
+
+// ==================== BORRAR PARTIDA ====================
 async function borrarPartida() {
-    // 1. Doble confirmación de seguridad para evitar borrados accidentales
     const seguro = confirm("⚠️ ¿Estás 100% seguro de que quieres BORRAR TU PARTIDA?\n\nPerderás todos tus Pokémon, niveles y granjas para siempre.");
     
     if (!seguro) return;
 
     try {
-        // 2. Ejecutar el DELETE en la API
         const res = await fetch(`${API_URL}/jugador`, { method: 'DELETE' });
         
         if (res.ok) {
             alert("Partida borrada. Comenzarás tu aventura desde cero.");
-            // 3. Volver al inicio y recargar la página para que salte la pantalla de elegir Starter
+            
+            // 👇 ¡AQUÍ ESTÁ LA MAGIA! Esto borra la memoria de los tutoriales vistos
+            localStorage.clear(); 
+            
             window.location.hash = "#home";
             location.reload(); 
         } else {

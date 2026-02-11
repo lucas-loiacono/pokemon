@@ -1,19 +1,19 @@
 const { Pool } = require('pg');
 
-const dbClient = new Pool({
-  connectionString: 'postgresql://neondb_owner:npg_LXJPI0oZf5Qv@ep-solitary-river-ai21ihv6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-
 //const dbClient = new Pool({
-//  user: 'postgres',
-//  host: 'localhost',
-//  database: 'pokemon',
-//  password: 'postgres',
-//  port: 5432,
+//  connectionString: 'postgresql://neondb_owner:npg_LXJPI0oZf5Qv@ep-solitary-river-ai21ihv6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+//  ssl: {
+//    rejectUnauthorized: false
+//  }
 //});
+
+const dbClient = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'pokemon',
+  password: 'postgres',
+  port: 5432,
+});
 
 const XP_POR_EVOLUCION = 50;
 
