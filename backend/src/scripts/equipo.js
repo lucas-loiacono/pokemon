@@ -21,7 +21,6 @@ async function getJugadorId() {
   return result.rows[0]?.id || null;
 }
 
-// ==================== VER EQUIPO ====================
 
 async function getEquipo() {
   const jugadorId = await getJugadorId();
@@ -57,7 +56,6 @@ async function getEquipo() {
   return result.rows;
 }
 
-// ==================== AGREGAR AL EQUIPO ====================
 
 async function agregarAlEquipo(jugador_pokemon_id, posicion) {
   const jugadorId = await getJugadorId();
@@ -66,7 +64,6 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Verificar que el Pokémon existe y pertenece al jugador
   const pokemonCheck = await dbClient.query(`
     SELECT id FROM jugador_pokemons
     WHERE id = $1 AND jugador_id = $2
@@ -76,7 +73,6 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
     return { error: 'Pokemon not found' };
   }
 
-  // 2. Verificar que no está ya en el equipo
   const enEquipo = await dbClient.query(`
     SELECT posicion FROM equipo_combate
     WHERE jugador_pokemon_id = $1
@@ -89,7 +85,6 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
     };
   }
 
-  // 3. Si no se especifica posición, buscar la primera disponible
   if (!posicion) {
     const posicionDisponible = await dbClient.query(`
       SELECT n as posicion
@@ -111,7 +106,6 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
     posicion = posicionDisponible.rows[0].posicion;
   }
 
-  // 4. Verificar que la posición está libre
   const posicionOcupada = await dbClient.query(`
     SELECT jugador_pokemon_id FROM equipo_combate
     WHERE jugador_id = $1 AND posicion = $2
@@ -124,13 +118,11 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
     };
   }
 
-  // 5. Agregar al equipo
   await dbClient.query(`
     INSERT INTO equipo_combate (jugador_id, jugador_pokemon_id, posicion)
     VALUES ($1, $2, $3)
   `, [jugadorId, jugador_pokemon_id, posicion]);
 
-  // 6. Obtener info del Pokémon agregado
   const pokemon = await dbClient.query(`
     SELECT 
       jp.id as jugador_pokemon_id,
@@ -156,7 +148,6 @@ async function agregarAlEquipo(jugador_pokemon_id, posicion) {
   };
 }
 
-// ==================== QUITAR DEL EQUIPO ====================
 
 async function quitarDelEquipo(posicion) {
   const jugadorId = await getJugadorId();
@@ -165,7 +156,6 @@ async function quitarDelEquipo(posicion) {
     return { error: 'Jugador not found' };
   }
 
-  // Obtener info antes de eliminar
   const pokemon = await dbClient.query(`
     SELECT 
       ec.jugador_pokemon_id,
@@ -186,7 +176,6 @@ async function quitarDelEquipo(posicion) {
 
   const { nombre, apodo } = pokemon.rows[0];
 
-  // Eliminar del equipo
   await dbClient.query(`
     DELETE FROM equipo_combate
     WHERE jugador_id = $1 AND posicion = $2
@@ -198,7 +187,6 @@ async function quitarDelEquipo(posicion) {
   };
 }
 
-// ==================== REORDENAR EQUIPO ====================
 
 async function reordenarEquipo(nuevoOrden) {
   const jugadorId = await getJugadorId();
@@ -207,14 +195,11 @@ async function reordenarEquipo(nuevoOrden) {
     return { error: 'Jugador not found' };
   }
 
-  // nuevoOrden es un array: [{ jugador_pokemon_id: 1, posicion: 1 }, ...]
 
-  // 1. Validar formato
   if (!Array.isArray(nuevoOrden) || nuevoOrden.length === 0) {
     return { error: 'Invalid format' };
   }
 
-  // 2. Validar que hay exactamente los Pokémon del equipo
   const equipoActual = await dbClient.query(`
     SELECT jugador_pokemon_id FROM equipo_combate
     WHERE jugador_id = $1
@@ -230,7 +215,6 @@ async function reordenarEquipo(nuevoOrden) {
     };
   }
 
-  // 3. Validar posiciones (1-5, sin duplicados)
   const posiciones = nuevoOrden.map(p => p.posicion);
   const posicionesUnicas = [...new Set(posiciones)];
   
@@ -244,12 +228,10 @@ async function reordenarEquipo(nuevoOrden) {
     }
   }
 
-  // 4. Eliminar todas las posiciones actuales
   await dbClient.query(`
     DELETE FROM equipo_combate WHERE jugador_id = $1
   `, [jugadorId]);
 
-  // 5. Insertar el nuevo orden
   for (const pokemon of nuevoOrden) {
     await dbClient.query(`
       INSERT INTO equipo_combate (jugador_id, jugador_pokemon_id, posicion)

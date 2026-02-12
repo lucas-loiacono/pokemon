@@ -16,13 +16,11 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-// ==================== HELPER: Obtener ID del jugador actual ====================
 async function getJugadorId() {
   const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
   return result.rows[0]?.id || null;
 }
 
-// ==================== ENTRENADORES ====================
 
 async function getAllEntrenadores() {
   const jugadorId = await getJugadorId();
@@ -31,7 +29,6 @@ async function getAllEntrenadores() {
     return { error: 'Jugador not found' };
   }
 
-  // Obtener el nivel más alto desbloqueado (basado en victorias)
   const maxNivelDesbloqueado = await dbClient.query(`
     SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
     FROM batallas b
@@ -41,7 +38,6 @@ async function getAllEntrenadores() {
 
   const nivelDesbloqueado = maxNivelDesbloqueado.rows[0].siguiente_nivel;
 
-  // Obtener todos los entrenadores con info de desbloqueo
   const result = await dbClient.query(`
     SELECT 
       e.id,
@@ -80,7 +76,6 @@ async function getOneEntrenador(id) {
     return { error: 'Jugador not found' };
   }
 
-  // Verificar si está desbloqueado
   const maxNivelDesbloqueado = await dbClient.query(`
     SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
     FROM batallas b
@@ -109,7 +104,6 @@ async function getOneEntrenador(id) {
     return null;
   }
 
-  // Obtener Pokémon del entrenador
   const pokemons = await dbClient.query(`
     SELECT 
       ep.posicion,
@@ -134,11 +128,10 @@ async function getOneEntrenador(id) {
   };
 }
 
-// ==================== COMBATE ====================
 
 
 function calcularMultiplicador(tiposAtacante, tiposDefensor, efectividades) {
-  let sumaEfectividad = 0; // Empezamos en 0 para sumar
+  let sumaEfectividad = 0; 
 
   for (const tipoAtacante of tiposAtacante) {
     for (const tipoDefensor of tiposDefensor) {
@@ -147,10 +140,8 @@ function calcularMultiplicador(tiposAtacante, tiposDefensor, efectividades) {
       );
 
       if (efectividad) {
-        // Sumamos el valor de la tabla (0, 0.5, 1, 2, etc.)
         sumaEfectividad += parseFloat(efectividad.multiplicador);
       } else {
-        // Si no está en la tabla, asumimos que es daño neutro (1)
         sumaEfectividad += 1.0;
       }
     }
@@ -166,7 +157,6 @@ async function iniciarCombate(entrenador_id) {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Verificar que el entrenador está desbloqueado
   const maxNivelDesbloqueado = await dbClient.query(`
     SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
     FROM batallas b
@@ -193,7 +183,6 @@ async function iniciarCombate(entrenador_id) {
     };
   }
 
-  // 2. Obtener equipo del jugador
   const equipoJugador = await dbClient.query(`
     SELECT 
       ec.posicion,
@@ -220,7 +209,6 @@ async function iniciarCombate(entrenador_id) {
     };
   }
 
-  // 3. Obtener equipo del entrenador
   const equipoEntrenador = await dbClient.query(`
     SELECT 
       ep.posicion,
@@ -241,13 +229,11 @@ async function iniciarCombate(entrenador_id) {
     return { error: 'Entrenador sin Pokémon' };
   }
 
-  // 4. Obtener tabla de efectividades
   const efectividades = await dbClient.query(`
     SELECT tipo_atacante, tipo_defensor, multiplicador
     FROM tipo_efectividad
   `);
 
-  // 5. Simular combates 1v1 (hasta 5 combates)
   const resultadosCombates = [];
   let victoriasJugador = 0;
   let victoriasEnemigo = 0;
@@ -262,7 +248,6 @@ async function iniciarCombate(entrenador_id) {
     const pokemonJugador = equipoJugador.rows[i];
     const pokemonEnemigo = equipoEntrenador.rows[i];
 
-    // Calcular poder de ataque (nivel * multiplicador de tipo)
     const multiplicadorJugador = calcularMultiplicador(
       pokemonJugador.tipos,
       pokemonEnemigo.tipos,
@@ -278,13 +263,11 @@ async function iniciarCombate(entrenador_id) {
     const poderJugador = pokemonJugador.nivel * multiplicadorJugador;
     const poderEnemigo = pokemonEnemigo.nivel * multiplicadorEnemigo;
 
-    // Determinar ganador
     let ganador;
     if (poderJugador > poderEnemigo) {
       ganador = 'jugador';
       victoriasJugador++;
     } else {
-      // Si es empate o el enemigo tiene más poder, gana el enemigo
       ganador = 'enemigo';
       victoriasEnemigo++;
     }
@@ -315,7 +298,6 @@ async function iniciarCombate(entrenador_id) {
     });
   }
 
-  // 6. Determinar resultado final (necesita 3+ victorias)
   const resultado = victoriasJugador >= 3 ? 'victoria' : 'derrota';
   
   console.log(`\n🏆 RESULTADO FINAL:`);
@@ -323,19 +305,17 @@ async function iniciarCombate(entrenador_id) {
   console.log(`   Victorias Enemigo: ${victoriasEnemigo}`);
   console.log(`   Resultado: ${resultado.toUpperCase()}\n`);
 
-  // 7. Calcular XP según resultado
   let xpJugador;
   let xpPokemon;
 
   if (resultado === 'victoria') {
-    xpJugador = 100;  // Jugador gana 100 XP
-    xpPokemon = 30;   // Cada Pokémon gana 30 XP
+    xpJugador = 100;  
+    xpPokemon = 30;   
   } else {
-    xpJugador = 10;   // Jugador gana 10 XP
-    xpPokemon = 10;   // Cada Pokémon gana 10 XP
+    xpJugador = 10;   
+    xpPokemon = 10;   
   }
 
-  // 8. Registrar batalla
   const batalla = await dbClient.query(`
     INSERT INTO batallas (
       jugador_id,
@@ -365,14 +345,12 @@ async function iniciarCombate(entrenador_id) {
     xpJugador
   ]);
 
-  // 9. Dar XP al jugador
   await dbClient.query(`
     UPDATE jugadores
     SET xp = xp + $1
     WHERE id = $2
   `, [xpJugador, jugadorId]);
 
-  // 10. Dar XP a TODOS los Pokémon del equipo
   const pokemonsActualizados = [];
   
   for (let i = 0; i < equipoJugador.rowCount; i++) {
@@ -384,7 +362,6 @@ async function iniciarCombate(entrenador_id) {
       WHERE id = $2
     `, [xpPokemon, pokemon.jugador_pokemon_id]);
 
-    // Verificar subida de nivel
     const nivelResultado = await verificarSubidaNivelPokemon(pokemon.jugador_pokemon_id);
     
     pokemonsActualizados.push({
@@ -395,7 +372,6 @@ async function iniciarCombate(entrenador_id) {
     });
   }
 
-  // 11. Marcar combates ganados solo para los que ganaron su duelo
   for (let i = 0; i < resultadosCombates.length; i++) {
     if (resultadosCombates[i].ganador === 'jugador') {
       const pokemonGanador = equipoJugador.rows[i];
@@ -408,7 +384,6 @@ async function iniciarCombate(entrenador_id) {
     }
   }
 
-  // 12. Verificar subida de nivel del jugador
   const jugadorNivel = await verificarSubidaNivelJugador();
 
   return {
@@ -430,7 +405,6 @@ async function iniciarCombate(entrenador_id) {
   };
 }
 
-// ==================== HISTORIAL ====================
 
 async function getHistorialBatallas() {
   const jugadorId = await getJugadorId();

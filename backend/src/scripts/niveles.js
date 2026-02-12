@@ -24,17 +24,10 @@ async function getJugadorId() {
   return result.rows[0]?.id || null;
 }
 
-// ==================== CALCULAR XP ACUMULADA ====================
 function calcularXPAcumulada(nivel) {
-  // XP total acumulada hasta llegar a ese nivel
-  // Nivel 1 = 0 XP
-  // Nivel 2 = 100 XP
-  // Nivel 3 = 200 XP
-  // Nivel 30 = 2900 XP
   return (nivel - 1) * XP_POR_NIVEL;
 }
 
-// ==================== SUBIR NIVEL POKÉMON ====================
 
 async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
   const jugadorId = await getJugadorId();
@@ -43,7 +36,6 @@ async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Obtener Pokémon
   const pokemon = await dbClient.query(`
     SELECT 
       jp.id, 
@@ -64,7 +56,6 @@ async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
   let { nivel, xp, pokemon_nombre, apodo } = pokemon.rows[0];
   const nivelOriginal = nivel;
 
-  // 2. Verificar si puede subir de nivel
   if (nivel >= MAX_NIVEL) {
     return { 
       subio_nivel: false, 
@@ -74,7 +65,6 @@ async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
     };
   }
 
-  // 3. Calcular cuántos niveles sube
   let nivelesSubidos = [];
   
   while (nivel < MAX_NIVEL) {
@@ -88,7 +78,6 @@ async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
     }
   }
 
-  // 4. Si subió de nivel, actualizar
   if (nivelesSubidos.length > 0) {
     await dbClient.query(`
       UPDATE jugador_pokemons
@@ -113,7 +102,6 @@ async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
     };
   }
 
-  // 5. Si no subió, devolver info de progreso
   const xpParaSiguiente = calcularXPAcumulada(nivel + 1);
   const xpEnNivelActual = xp - calcularXPAcumulada(nivel);
   const xpFaltante = xpParaSiguiente - xp;
@@ -130,7 +118,6 @@ async function verificarSubidaNivelPokemon(jugador_pokemon_id) {
   };
 }
 
-// ==================== SUBIR NIVEL JUGADOR ====================
 
 async function verificarSubidaNivelJugador() {
   const jugadorId = await getJugadorId();
@@ -139,7 +126,6 @@ async function verificarSubidaNivelJugador() {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Obtener jugador
   const jugador = await dbClient.query(`
     SELECT id, nivel, xp
     FROM jugadores
@@ -153,7 +139,6 @@ async function verificarSubidaNivelJugador() {
   let { nivel, xp } = jugador.rows[0];
   const nivelOriginal = nivel;
 
-  // 2. Verificar si puede subir de nivel
   if (nivel >= MAX_NIVEL) {
     return { 
       subio_nivel: false, 
@@ -163,7 +148,6 @@ async function verificarSubidaNivelJugador() {
     };
   }
 
-  // 3. Calcular cuántos niveles sube
   let nivelesSubidos = [];
   
   while (nivel < MAX_NIVEL) {
@@ -177,7 +161,6 @@ async function verificarSubidaNivelJugador() {
     }
   }
 
-  // 4. Si subió de nivel, actualizar
   if (nivelesSubidos.length > 0) {
     await dbClient.query(`
       UPDATE jugadores
@@ -185,7 +168,6 @@ async function verificarSubidaNivelJugador() {
       WHERE id = $2
     `, [nivel, jugadorId]);
 
-    // Obtener slots desbloqueados
     const slotsInventario = await dbClient.query(`
       SELECT slots_disponibles FROM inventario_slots_config
       WHERE nivel_jugador = $1
@@ -213,7 +195,6 @@ async function verificarSubidaNivelJugador() {
     };
   }
 
-  // 5. Si no subió, devolver info de progreso
   const xpParaSiguiente = calcularXPAcumulada(nivel + 1);
   const xpEnNivelActual = xp - calcularXPAcumulada(nivel);
   const xpFaltante = xpParaSiguiente - xp;
@@ -228,7 +209,6 @@ async function verificarSubidaNivelJugador() {
   };
 }
 
-// ==================== OBTENER INFO DE NIVEL ====================
 
 async function getInfoNivelPokemon(jugador_pokemon_id) {
   const jugadorId = await getJugadorId();
@@ -300,7 +280,6 @@ async function getInfoNivelJugador() {
   const xpFaltante = nivel >= MAX_NIVEL ? 0 : xpParaSiguiente - xp;
   const porcentaje = nivel >= MAX_NIVEL ? 100 : ((xpEnNivelActual / XP_POR_NIVEL) * 100).toFixed(2);
 
-  // Obtener slots
   const slotsInventario = await dbClient.query(`
     SELECT slots_disponibles FROM inventario_slots_config
     WHERE nivel_jugador = $1

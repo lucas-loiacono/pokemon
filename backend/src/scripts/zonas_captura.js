@@ -21,7 +21,6 @@ async function getJugadorId() {
   return result.rows[0]?.id || null;
 }
 
-// ==================== ZONAS ====================
 
 async function getAllZonas() {
   const result = await dbClient.query(`
@@ -90,7 +89,6 @@ async function getZonaPokemons(zona_id) {
   return result.rows;
 }
 
-// ==================== CAPTURAS ====================
 
 async function capturarPokemon(zona_id) {
   const jugadorId = await getJugadorId();
@@ -99,13 +97,11 @@ async function capturarPokemon(zona_id) {
     return { error: 'Jugador not found' };
   }
   
-  // 1. Verificar que la zona existe
   const zona = await getOneZona(zona_id);
   if (!zona) {
     return { error: 'Zona not found' };
   }
 
-  // 2. Verificar espacio en el inventario
   const inventarioCheck = await dbClient.query(`
     SELECT 
       (SELECT COUNT(*) FROM jugador_pokemons WHERE jugador_id = $1) as pokemons_actuales,
@@ -128,7 +124,6 @@ async function capturarPokemon(zona_id) {
     };
   }
 
-  // 3. Obtener Pokémon aleatorio de los TIPOS de la zona (SOLO FASE 1)
   const pokemonsDisponibles = await dbClient.query(`
     SELECT DISTINCT p.id as pokemon_id
     FROM pokemons p
@@ -149,14 +144,12 @@ async function capturarPokemon(zona_id) {
   const randomIndex = Math.floor(Math.random() * pokemonsDisponibles.rowCount);
   const pokemon_id = pokemonsDisponibles.rows[randomIndex].pokemon_id;
 
-  // 4. Capturar Pokémon (SIEMPRE nivel 1, etapa 1)
   const result = await dbClient.query(`
     INSERT INTO jugador_pokemons (jugador_id, pokemon_id, nivel, xp, combates_ganados, etapa_evolucion)
     VALUES ($1, $2, 1, 0, 0, 1)
     RETURNING *
   `, [jugadorId, pokemon_id]);
 
-  // 5. Obtener datos completos del Pokémon capturado
   const pokemonCapturado = await dbClient.query(`
     SELECT 
       jp.id as jugador_pokemon_id,

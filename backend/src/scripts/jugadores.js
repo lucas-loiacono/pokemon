@@ -21,7 +21,6 @@ async function getJugadorId() {
   return result.rows[0]?.id || null;
 }
 
-// ==================== JUGADOR ====================
 
 async function getJugador() {
   const jugadorId = await getJugadorId();
@@ -166,7 +165,6 @@ async function eliminarPokemon(jugador_pokemon_id) {
     return { error: 'Jugador not found' };
   }
   
-  // 1. Verificar que el Pokémon existe y pertenece al jugador
   const pokemonCheck = await dbClient.query(`
     SELECT 
       jp.id,
@@ -184,7 +182,6 @@ async function eliminarPokemon(jugador_pokemon_id) {
 
   const { nombre, nivel, xp } = pokemonCheck.rows[0];
 
-  // 2. Verificar que no está en el equipo de combate
   const enEquipo = await dbClient.query(`
     SELECT posicion FROM equipo_combate
     WHERE jugador_pokemon_id = $1
@@ -198,7 +195,6 @@ async function eliminarPokemon(jugador_pokemon_id) {
     };
   }
 
-  // 3. Eliminar el Pokémon (CASCADE eliminará automáticamente de hábitats)
   await dbClient.query(`
     DELETE FROM jugador_pokemons
     WHERE id = $1
@@ -215,7 +211,6 @@ async function eliminarPokemon(jugador_pokemon_id) {
     mensaje: `${nombre} ha sido liberado`
   };
 }
-// ==================== BORRAR JUGADOR (REINICIAR PARTIDA) ====================
 async function borrarJugador() {
   const jugadorId = await getJugadorId();
   
@@ -223,8 +218,6 @@ async function borrarJugador() {
     return { error: 'Jugador no encontrado' };
   }
 
-  // Al borrar al jugador, la base de datos debería eliminar automáticamente en cascada 
-  // sus pokemons, granjas, inventario, etc.
   await dbClient.query(`
     DELETE FROM jugadores
     WHERE id = $1

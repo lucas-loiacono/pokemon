@@ -23,7 +23,6 @@ async function getJugadorId() {
   return result.rows[0]?.id || null;
 }
 
-// ==================== GRANJAS DEL JUGADOR ====================
 
 async function getJugadorGranjas() {
   const jugadorId = await getJugadorId();
@@ -48,7 +47,6 @@ async function getJugadorGranjas() {
 
   const { nivel, xp, slots_disponibles } = config.rows[0];
 
-  // 2. Obtener todas las granjas y marcar cuáles están desbloqueadas
   const result = await dbClient.query(`
     WITH granjas_numeradas AS (
       SELECT 
@@ -100,7 +98,6 @@ async function getGranjaDetalle(granja_id) {
     return null;
   }
 
-  // 1. Obtener slots disponibles
   const config = await dbClient.query(`
     SELECT 
       j.nivel,
@@ -116,7 +113,6 @@ async function getGranjaDetalle(granja_id) {
 
   const { nivel, slots_disponibles } = config.rows[0];
 
-  // 2. Obtener la granja específica
   const result = await dbClient.query(`
     WITH granjas_numeradas AS (
       SELECT 
@@ -160,7 +156,6 @@ async function getGranjaDetalle(granja_id) {
   return result.rows[0];
 }
 
-// ==================== RECOLECTAR ====================
 
 
 async function recolectarFrutas(granja_id) {
@@ -170,7 +165,6 @@ async function recolectarFrutas(granja_id) {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Verificar que la granja está desbloqueada y obtener info
   const granjaCheck = await dbClient.query(`
     WITH granjas_numeradas AS (
       SELECT 
@@ -219,7 +213,6 @@ async function recolectarFrutas(granja_id) {
     slots_disponibles 
   } = granjaCheck.rows[0];
 
-  // 2. Verificar que está desbloqueada
   if (numero_granja > slots_disponibles) {
     return { 
       error: 'Granja not unlocked yet',
@@ -227,7 +220,6 @@ async function recolectarFrutas(granja_id) {
     };
   }
 
-  // 3. Verificar que puede recolectar (calculado en la DB)
   if (!puede_recolectar) {
     const minutosRestantes = Math.ceil(tiempo_restante_segundos / 60);
     return { 
@@ -237,7 +229,6 @@ async function recolectarFrutas(granja_id) {
     };
   }
 
-  // 4. Agregar frutas al inventario
   await dbClient.query(`
     INSERT INTO jugador_frutas (jugador_id, fruta_id, cantidad)
     VALUES ($1, $2, $3)
@@ -245,7 +236,6 @@ async function recolectarFrutas(granja_id) {
     DO UPDATE SET cantidad = jugador_frutas.cantidad + $3
   `, [jugadorId, FRUTA_ID, cantidad_produccion]);
 
-  // 5. Resetear timer (próxima recolección)
   await dbClient.query(`
     UPDATE granjas
     SET 
@@ -256,14 +246,12 @@ async function recolectarFrutas(granja_id) {
     WHERE id = $2
   `, [FRUTA_ID, granja_id]);
 
-  // 6. Dar 20 XP al jugador por recolectar
   await dbClient.query(`
     UPDATE jugadores
     SET xp = xp + 20
     WHERE id = $1
   `, [jugadorId]);
 
-  // 7. Obtener cantidad total de frutas
   const inventario = await dbClient.query(`
     SELECT cantidad FROM jugador_frutas
     WHERE jugador_id = $1 AND fruta_id = $2
@@ -283,7 +271,6 @@ async function recolectarFrutas(granja_id) {
 
 
 
-// ==================== CREAR 6 GRANJAS AL INICIO ====================
 
 async function crearGranjasIniciales() {
   const jugadorId = await getJugadorId();
@@ -292,7 +279,6 @@ async function crearGranjasIniciales() {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Verificar si ya existen granjas
   const granjasActuales = await dbClient.query(`
     SELECT COUNT(*) as total FROM granjas WHERE jugador_id = $1
   `, [jugadorId]);
@@ -303,7 +289,6 @@ async function crearGranjasIniciales() {
     return { mensaje: 'Granjas already exist', total: totalActual };
   }
 
-  // 2. Crear las 6 granjas (todas empiezan listas para recolectar)
   const granjasACrear = 6 - totalActual;
 
   for (let i = 0; i < granjasACrear; i++) {
