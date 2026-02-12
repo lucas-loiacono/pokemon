@@ -7,7 +7,6 @@ app.use(express.json());
 const cors = require('cors');
 app.use(cors());
 
-// ==================== MIDDLEWARE ANTI-CACHE (CRÍTICO PARA VERCEL) ====================
 app.use((req, res, next) => {
   res.set({
     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -17,11 +16,9 @@ app.use((req, res, next) => {
   });
   next();
 });
-// ==================================================================================
 
 const PORT = process.env.PORT || 3000;
 
-// Configuración de la base de datos para tipo-efectividad
 const dbClient = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -113,15 +110,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
-// ==================== POKEMONS ====================
 
-// Get all pokemons
 app.get('/api/pokemons', async (req, res) => {
   const pokemons = await getAllPokemons();
   res.json(pokemons);
 });
 
-// Get pokemon by id
 app.get('/api/pokemons/:id', async (req, res) => {
   const pokemon = await getOnePokemon(req.params.id);
   if (!pokemon) {
@@ -130,7 +124,6 @@ app.get('/api/pokemons/:id', async (req, res) => {
   res.json(pokemon);
 });
 
-// Insert new pokemon 
 app.post('/api/pokemons', async (req, res) => {
   if (!req.body.pokedex_id || !req.body.nombre || !req.body.imagen_url) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -144,7 +137,6 @@ app.post('/api/pokemons', async (req, res) => {
   res.status(201).json(newPokemon);
 });
 
-// Update pokemon
 app.put('/api/pokemons/:id', async (req, res) => {
   if (!req.body.nombre && !req.body.imagen_url) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -158,7 +150,6 @@ app.put('/api/pokemons/:id', async (req, res) => {
   res.json(updatedPokemon);
 });
 
-// Delete pokemon
 app.delete('/api/pokemons/:id', async (req, res) => {
   const pokemon = await deletePokemon(req.params.id);
   if (!pokemon) {
@@ -167,9 +158,7 @@ app.delete('/api/pokemons/:id', async (req, res) => {
   res.json({ message: 'Pokemon deleted successfully' });
 });
 
-// ==================== JUGADOR ====================
 
-// Get jugador info
 app.get('/api/jugador', async (req, res) => {
   const jugador = await getJugador();
   if (!jugador) {
@@ -178,29 +167,23 @@ app.get('/api/jugador', async (req, res) => {
   res.json(jugador);
 });
 
-// Get jugador's pokemons
 app.get('/api/jugador/pokemons', async (req, res) => {
   const pokemons = await getJugadorPokemons();
   res.json(pokemons);
 });
 
-// Get jugador's inventario (frutas)
-// --- VERSIÓN CORREGIDA: Obtener inventario directo ---
 app.get('/api/jugador/inventario', async (req, res) => {
   try {
-    // 1. Buscamos el ID del jugador
     const jugadorQuery = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
     const jugadorId = jugadorQuery.rows[0]?.id;
 
-    if (!jugadorId) return res.json([]); // Si no hay jugador, devolvemos lista vacía
+    if (!jugadorId) return res.json([]); 
 
-    // 2. Buscamos sus frutas directamente en la base de datos
     const result = await dbClient.query(
       'SELECT fruta_id, cantidad FROM jugador_frutas WHERE jugador_id = $1', 
       [jugadorId]
     );
     
-    // Devolvemos las filas (ej: [{fruta_id: 1, cantidad: 50}])
     res.json(result.rows);
     
   } catch (error) {
@@ -209,7 +192,6 @@ app.get('/api/jugador/inventario', async (req, res) => {
   }
 });
 
-// Update jugador stats (usado internamente por el juego)
 app.put('/api/jugador/stats', async (req, res) => {
   const { nivel, xp } = req.body;
 
@@ -225,7 +207,6 @@ app.put('/api/jugador/stats', async (req, res) => {
   res.json(updatedJugador);
 });
 
-// Set apodo to a pokemon
 app.put('/api/jugador/pokemons/:id/apodo', async (req, res) => {
   const { apodo } = req.body;
 
@@ -243,7 +224,6 @@ app.put('/api/jugador/pokemons/:id/apodo', async (req, res) => {
 });
 
 
-// Eliminar Pokémon del inventario
 app.delete('/api/jugador/pokemons/:id', async (req, res) => {
   const result = await eliminarPokemon(req.params.id);
 
@@ -254,17 +234,12 @@ app.delete('/api/jugador/pokemons/:id', async (req, res) => {
   res.json(result);
 });
 
-// Borrar jugador (Reiniciar Partida - DELETE CRUD)
 app.delete('/api/jugador', async (req, res) => {
   try {
     await dbClient.query('BEGIN');
 
-    // 1. Limpiamos TODO y reseteamos los contadores de ID a 1
-    // RESTART IDENTITY hace que el próximo ID sea 1 de nuevo
-    // CASCADE borra automáticamente las tablas relacionadas (tipos aceptados, pokemons en zonas, etc.)
     await dbClient.query('TRUNCATE jugadores, habitats, zonas, granjas, jugador_frutas RESTART IDENTITY CASCADE');
 
-    // 2. Re-insertamos los 6 Hábitats originales
     await dbClient.query(`
       INSERT INTO habitats (id, tipo, capacidad, imagen_url) VALUES
       (1, 'Pradera', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatllanura.jpg'),
@@ -275,7 +250,6 @@ app.delete('/api/jugador', async (req, res) => {
       (6, 'Hielo', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitathielo.png');
     `);
 
-    // 3. Re-insertamos los Tipos Aceptados para esos hábitats
     await dbClient.query(`
       INSERT INTO habitat_tipos_aceptados (habitat_id, tipo_nombre) VALUES
       (1, 'Normal'), (1, 'Eléctrico'), (1, 'Psíquico'),
@@ -286,7 +260,6 @@ app.delete('/api/jugador', async (req, res) => {
       (6, 'Hielo'), (6, 'Dragón');
     `);
 
-    // 4. Re-insertamos las 6 Zonas originales
     await dbClient.query(`
       INSERT INTO zonas (id, nombre, descripcion, imagen_url) VALUES
       (1, 'Pradera', 'Campos abiertos', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturallanura.png'),
@@ -297,7 +270,6 @@ app.delete('/api/jugador', async (req, res) => {
       (6, 'Nieve', 'Montañas nevadas', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturahielo.png');
     `);
 
-    // 5. Re-insertamos los Tipos para las zonas
     await dbClient.query(`
       INSERT INTO zona_tipos (zona_id, tipo_id) 
       SELECT 1, id FROM tipos WHERE nombre IN ('Normal', 'Eléctrico', 'Psíquico') UNION ALL
@@ -308,7 +280,6 @@ app.delete('/api/jugador', async (req, res) => {
       SELECT 6, id FROM tipos WHERE nombre IN ('Hielo', 'Dragón');
     `);
 
-    // 6. Sincronizamos las secuencias para que el próximo manual sea ID 7
     await dbClient.query("SELECT setval('habitats_id_seq', 6, true)");
     await dbClient.query("SELECT setval('zonas_id_seq', 6, true)");
 
@@ -322,33 +293,27 @@ app.delete('/api/jugador', async (req, res) => {
   }
 });
 
-// ==================== HÁBITATS ====================
 
-// Get all habitat types
 app.get('/api/habitats', async (req, res) => {
   const habitats = await getAllHabitats();
   res.json(habitats);
 });
 
-// Get jugador's habitats
 app.get('/api/jugador/habitats', async (req, res) => {
   const habitats = await getJugadorHabitats();
   res.json(habitats);
 });
 
-// Get pokemons in a habitat
 app.get('/api/jugador/habitats/:id/pokemons', async (req, res) => {
   const pokemons = await getHabitatPokemons(req.params.id);
   res.json(pokemons);
 });
 
-// Obtener tipos permitidos en un hábitat
 app.get('/api/habitats/:id/tipos', async (req, res) => {
   const tipos = await getHabitatTipos(req.params.id);
   res.json(tipos);
 });
 
-// Assign pokemon to habitat
 app.post('/api/jugador/habitats/:id/asignar', async (req, res) => {
   const { jugador_pokemon_id } = req.body;
 
@@ -365,7 +330,6 @@ app.post('/api/jugador/habitats/:id/asignar', async (req, res) => {
   res.json(result);
 });
 
-// Remove pokemon from habitat
 app.delete('/api/jugador/habitats/:id/pokemons/:pokemon_id', async (req, res) => {
   const result = await quitarPokemonHabitat(req.params.id, req.params.pokemon_id);
 
@@ -376,15 +340,11 @@ app.delete('/api/jugador/habitats/:id/pokemons/:pokemon_id', async (req, res) =>
   res.json({ message: 'Pokemon removed from habitat' });
 });
 
-// ==================== ZONAS ====================
-
-// Get all zones
 app.get('/api/zonas', async (req, res) => {
   const zonas = await getAllZonas();
   res.json(zonas);
 });
 
-// Get zone by id
 app.get('/api/zonas/:id', async (req, res) => {
   const zona = await getOneZona(req.params.id);
   if (!zona) {
@@ -393,13 +353,11 @@ app.get('/api/zonas/:id', async (req, res) => {
   res.json(zona);
 });
 
-// Get pokemons available in a zone
 app.get('/api/zonas/:id/pokemons', async (req, res) => {
   const pokemons = await getZonaPokemons(req.params.id);
   res.json(pokemons);
 });
 
-// Capture a pokemon from a zone
 app.post('/api/zonas/:id/capturar', async (req, res) => {
   const result = await capturarPokemon(req.params.id);
 
@@ -410,15 +368,12 @@ app.post('/api/zonas/:id/capturar', async (req, res) => {
   res.json(result);
 });
 
-// ==================== GRANJAS ====================
 
-// Get jugador's granjas (con info de desbloqueo)
 app.get('/api/jugador/granjas', async (req, res) => {
   const result = await getJugadorGranjas();
   res.json(result);
 });
 
-// Get granja detail
 app.get('/api/jugador/granjas/:id', async (req, res) => {
   const granja = await getGranjaDetalle(req.params.id);
   if (!granja) {
@@ -427,7 +382,6 @@ app.get('/api/jugador/granjas/:id', async (req, res) => {
   res.json(granja);
 });
 
-// Recolectar frutas
 app.post('/api/jugador/granjas/:id/recolectar', async (req, res) => {
   const result = await recolectarFrutas(req.params.id);
 
@@ -438,16 +392,13 @@ app.post('/api/jugador/granjas/:id/recolectar', async (req, res) => {
   res.json(result);
 });
 
-// Crear 6 granjas al inicio (ejecutar una sola vez)
 app.post('/api/jugador/granjas/inicializar', async (req, res) => {
   const result = await crearGranjasIniciales();
   res.json(result);
 });
 
 
-// ==================== EQUIPO ====================
 
-// Get jugador's team
 app.get('/api/jugador/equipo', async (req, res) => {
   const equipo = await getEquipo();
   
@@ -458,7 +409,6 @@ app.get('/api/jugador/equipo', async (req, res) => {
   res.json(equipo);
 });
 
-// Add pokemon to team
 app.post('/api/jugador/equipo', async (req, res) => {
   const { jugador_pokemon_id, posicion } = req.body;
 
@@ -475,7 +425,6 @@ app.post('/api/jugador/equipo', async (req, res) => {
   res.json(result);
 });
 
-// Remove pokemon from team
 app.delete('/api/jugador/equipo/:posicion', async (req, res) => {
   const posicion = parseInt(req.params.posicion);
   
@@ -492,7 +441,6 @@ app.delete('/api/jugador/equipo/:posicion', async (req, res) => {
   res.json(result);
 });
 
-// Reorder team
 app.put('/api/jugador/equipo/reordenar', async (req, res) => {
   const nuevoOrden = req.body;
 
@@ -510,7 +458,6 @@ app.put('/api/jugador/equipo/reordenar', async (req, res) => {
 });
 
 
-// ==================== ALIMENTAR ====================
 
 app.post('/api/jugador/pokemons/:id/alimentar', async (req, res) => {
   try {
@@ -526,9 +473,7 @@ app.post('/api/jugador/pokemons/:id/alimentar', async (req, res) => {
   }
 });
 
-// ==================== COMBATE ====================
 
-// Get all entrenadores
 app.get('/api/entrenadores', async (req, res) => {
   try {
     const entrenadores = await getAllEntrenadores();
@@ -538,7 +483,6 @@ app.get('/api/entrenadores', async (req, res) => {
   }
 });
 
-// Get entrenador by id
 app.get('/api/entrenadores/:id', async (req, res) => {
   try {
     const entrenador = await getOneEntrenador(parseInt(req.params.id));
@@ -551,7 +495,6 @@ app.get('/api/entrenadores/:id', async (req, res) => {
   }
 });
 
-// Combatir contra un entrenador
 app.post('/api/entrenadores/:id/combatir', async (req, res) => {
   try {
     const result = await iniciarCombate(parseInt(req.params.id));
@@ -565,9 +508,7 @@ app.post('/api/entrenadores/:id/combatir', async (req, res) => {
 });
 
 
-// ==================== TIPO EFECTIVIDAD ====================
 
-// Get tipo efectividad table
 app.get('/api/tipo-efectividad', async (req, res) => {
   try {
     const result = await dbClient.query(`
@@ -582,9 +523,7 @@ app.get('/api/tipo-efectividad', async (req, res) => {
   }
 });
 
-// ==================== NIVELES ====================
 
-// Verificar subida de nivel de un Pokémon
 app.post('/api/jugador/pokemons/:id/verificar-nivel', async (req, res) => {
   const result = await verificarSubidaNivelPokemon(req.params.id);
 
@@ -595,7 +534,6 @@ app.post('/api/jugador/pokemons/:id/verificar-nivel', async (req, res) => {
   res.json(result);
 });
 
-// Verificar subida de nivel del jugador
 app.post('/api/jugador/verificar-nivel', async (req, res) => {
   const result = await verificarSubidaNivelJugador();
 
@@ -606,7 +544,6 @@ app.post('/api/jugador/verificar-nivel', async (req, res) => {
   res.json(result);
 });
 
-// Obtener info de nivel de un Pokémon
 app.get('/api/jugador/pokemons/:id/nivel', async (req, res) => {
   const info = await getInfoNivelPokemon(req.params.id);
 
@@ -617,7 +554,6 @@ app.get('/api/jugador/pokemons/:id/nivel', async (req, res) => {
   res.json(info);
 });
 
-// Obtener info de nivel del jugador
 app.get('/api/jugador/nivel', async (req, res) => {
   const info = await getInfoNivelJugador();
 
@@ -628,9 +564,7 @@ app.get('/api/jugador/nivel', async (req, res) => {
   res.json(info);
 });
 
-// ==================== EVOLUCIONES ====================
 
-// Verificar si un Pokémon puede evolucionar
 app.get('/api/jugador/pokemons/:id/puede-evolucionar', async (req, res) => {
   const result = await puedeEvolucionar(req.params.id);
 
@@ -641,7 +575,6 @@ app.get('/api/jugador/pokemons/:id/puede-evolucionar', async (req, res) => {
   res.json(result);
 });
 
-// Evolucionar un Pokémon
 app.post('/api/jugador/pokemons/:id/evolucionar', async (req, res) => {
   const result = await evolucionarPokemon(req.params.id);
 
@@ -652,15 +585,11 @@ app.post('/api/jugador/pokemons/:id/evolucionar', async (req, res) => {
   res.json(result);
 });
 
-// ==================== INICIALIZACIÓN ====================
-
-// Obtener Pokémon starters disponibles
 app.get('/api/inicializar/starters', async (req, res) => {
   const starters = await getStartersDisponibles();
   res.json(starters);
 });
 
-// Inicializar juego con un starter
 app.post('/api/inicializar', async (req, res) => {
   const { pokemon_starter_id } = req.body;
 
@@ -677,7 +606,6 @@ app.post('/api/inicializar', async (req, res) => {
   res.json(result);
 });
 
-// Reiniciar juego (BORRAR TODO)
 app.post('/api/reiniciar', async (req, res) => {
   const result = await reiniciarJuego();
   res.json(result);
@@ -689,7 +617,6 @@ app.put('/api/jugador/pokemons/:id/apodo', async (req, res) => {
     res.json(resultado);
 });
 
-// ==================== GESTIÓN DE HÁBITATS (ADMIN) ====================
 
 app.post('/api/habitats', async (req, res) => {
     const { nombre, imagen_url, tiposAceptados } = req.body; 
@@ -701,14 +628,12 @@ app.post('/api/habitats', async (req, res) => {
     try {
         await dbClient.query('BEGIN');
 
-        // 1. Crear el hábitat global
         const result = await dbClient.query(
             'INSERT INTO habitats (tipo, imagen_url, capacidad) VALUES ($1, $2, 6) RETURNING *',
             [nombre, imagen_url]
         );
         const nuevoHabitat = result.rows[0];
 
-        // 2. Vincular tipos aceptados
         for (const nombreTipo of tiposAceptados) {
             await dbClient.query(
                 'INSERT INTO habitat_tipos_aceptados (habitat_id, tipo_nombre) VALUES ($1, $2)',
@@ -716,7 +641,6 @@ app.post('/api/habitats', async (req, res) => {
             );
         }
 
-        // 3. DESBLOQUEAR PARA EL JUGADOR ACTUAL (Solución al error "no desbloqueado")
         const jugadorRes = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
         const jugadorId = jugadorRes.rows[0]?.id;
         if (jugadorId) {
@@ -734,9 +658,7 @@ app.post('/api/habitats', async (req, res) => {
     }
 });
 
-// Renombrar / Editar Hábitat
 app.put('/api/habitats/:id', async (req, res) => {
-    // En tu tabla, el nombre se guarda en la columna 'tipo'
     const { nombre, imagen_url } = req.body;
     try {
         const result = await dbClient.query(
@@ -747,20 +669,14 @@ app.put('/api/habitats/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Eliminar Hábitat
 app.delete('/api/habitats/:id', async (req, res) => {
     try {
-        // Gracias a tus ON DELETE CASCADE en las tablas 'jugador_habitats',
-        // al borrar el hábitat padre, PostgreSQL limpia todo automáticamente.
-        // Los Pokémon no se borran, solo se rompe el vínculo con el hábitat (vuelven a la caja).
         await dbClient.query('DELETE FROM habitats WHERE id = $1', [req.params.id]);
         res.json({ message: 'Hábitat eliminado correctamente.' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ==================== GESTIÓN DE ZONAS (ADMIN) ====================
 
-// Crear Zona
 app.post('/api/zonas', async (req, res) => {
     const { nombre, imagen_url, descripcion, tiposAceptados } = req.body; 
     
@@ -771,19 +687,15 @@ app.post('/api/zonas', async (req, res) => {
     try {
         await dbClient.query('BEGIN');
 
-        // 1. Insertar la zona
         const result = await dbClient.query(
             'INSERT INTO zonas (nombre, imagen_url, descripcion) VALUES ($1, $2, $3) RETURNING *',
             [nombre, imagen_url, descripcion || 'Zona de aventura']
         );
         const nuevaZona = result.rows[0];
 
-        // 2. Insertar los tipos en la tabla zona_tipos
         for (const nombreTipo of tiposAceptados) {
-            // Normalizamos el nombre (Ej: "fuego" -> "Fuego")
             const tipoFormateado = nombreTipo.trim().charAt(0).toUpperCase() + nombreTipo.trim().slice(1).toLowerCase();
 
-            // Buscamos el ID del tipo en la tabla 'tipos'
             const resTipo = await dbClient.query('SELECT id FROM tipos WHERE nombre = $1', [tipoFormateado]);
             
             if (resTipo.rows.length > 0) {
@@ -796,7 +708,7 @@ app.post('/api/zonas', async (req, res) => {
         }
 
         await dbClient.query('COMMIT');
-        res.json(nuevaZona); // Devolvemos la zona creada para confirmar
+        res.json(nuevaZona);
     } catch (e) { 
         await dbClient.query('ROLLBACK');
         console.error("❌ Error creando zona:", e);
@@ -804,7 +716,6 @@ app.post('/api/zonas', async (req, res) => {
     }
 });
 
-// Editar Zona
 app.put('/api/zonas/:id', async (req, res) => {
     const { nombre, imagen_url } = req.body;
     try {
@@ -816,22 +727,17 @@ app.put('/api/zonas/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Eliminar Zona
 app.delete('/api/zonas/:id', async (req, res) => {
     try {
-        // Tu ON DELETE CASCADE en 'zona_pokemons' se encarga de limpiar los bichos de esa zona
         await dbClient.query('DELETE FROM zonas WHERE id = $1', [req.params.id]);
         res.json({ message: 'Zona eliminada' });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ==================== GESTIÓN DE GRANJAS (Solo Renombrar) ====================
 
-// Renombrar Granja
 app.put('/api/granjas/:id/renombrar', async (req, res) => {
     const { nombre } = req.body;
     try {
-        // Usamos la nueva columna 'nombre_personalizado'
         const result = await dbClient.query(
             'UPDATE granjas SET nombre_personalizado = $1 WHERE id = $2 RETURNING *',
             [nombre, req.params.id]
