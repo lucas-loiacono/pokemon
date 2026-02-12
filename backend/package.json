@@ -4,9 +4,10 @@
   "type": "commonjs",
   "scripts": {
     "seed": "node seedPokemons.js",
-    "dev": "nodemon src/api.js"
+    "dev": "nodemon api.js"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "pg": "^8.17.1"
   },

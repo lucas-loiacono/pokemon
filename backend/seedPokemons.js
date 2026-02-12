@@ -1,5 +1,14 @@
 const { Pool } = require('pg');
 
+//const pool = new Pool({
+//  connectionString: 'postgresql://neondb_owner:npg_LXJPI0oZf5Qv@ep-solitary-river-ai21ihv6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+//  ssl: {
+//    rejectUnauthorized: false
+//  }
+//});
+
+
+//Para correrlo en localhos
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -25,24 +34,24 @@ function getGeneracion(id) {
 
 // Mapeo de nombres de tipos de inglés a español
 const tipoMap = {
-  'normal': 'normal',
-  'fire': 'fuego',
-  'water': 'agua',
-  'grass': 'planta',
-  'electric': 'electrico',
-  'ice': 'hielo',
-  'fighting': 'lucha',
-  'poison': 'veneno',
-  'ground': 'tierra',
-  'flying':  'volador',
-  'psychic':  'psiquico',
-  'bug': 'bicho',
-  'rock': 'roca',
-  'ghost': 'fantasma',
-  'dragon': 'dragon',
-  'dark': 'siniestro',
-  'steel': 'acero',
-  'fairy': 'hada'
+  'normal': 'Normal',
+  'fire': 'Fuego',
+  'water': 'Agua',
+  'grass': 'Planta',
+  'electric': 'Eléctrico',
+  'ice': 'Hielo',
+  'fighting': 'Lucha',
+  'poison': 'Veneno',
+  'ground': 'Tierra',
+  'flying': 'Volador',
+  'psychic': 'Psíquico',
+  'bug': 'Bicho',
+  'rock': 'Roca',
+  'ghost': 'Fantasma',
+  'dragon': 'Dragón',
+  'dark': 'Siniestro',
+  'steel': 'Acero',
+  'fairy': 'Hada'
 };
 
 async function fetchPokemon(id) {
