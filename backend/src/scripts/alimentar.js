@@ -16,7 +16,7 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-const FRUTA_ID = 1; // Siempre "Bayas verdes"
+const FRUTA_ID = 1; 
 const XP_POR_FRUTA = 20;
 
 // ==================== HELPER: Obtener ID del jugador actual ====================

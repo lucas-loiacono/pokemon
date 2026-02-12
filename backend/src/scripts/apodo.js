@@ -1,4 +1,3 @@
-// Archivo: src/scripts/apodo.js
 const { Pool } = require('pg');
 
 //const dbClient = new Pool({
@@ -23,11 +22,11 @@ async function cambiarApodo(jugadorPokemonId, nuevoApodo) {
             return { error: 'El apodo no puede estar vacío' };
         }
 
-        // 2. Obtener ID del jugador para verificar propiedad (seguridad)
+        // 2. Obtener ID del jugador para verificar 
         const result = await dbClient.query('SELECT jugador_id FROM jugador_pokemons WHERE id = $1', [jugadorPokemonId]);
         if (result.rowCount === 0) return { error: 'Pokémon no encontrado' };
         
-        // (Aquí podrías validar si el jugador actual es el dueño, si tienes el ID del jugador en la sesión)
+        
 
         // 3. Actualizar el apodo
         await dbClient.query(
