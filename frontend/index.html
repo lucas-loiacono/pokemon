@@ -65,9 +65,7 @@
         
         #capturar:target ~ .page { display: none !important; }
         #capturar:target ~ #view-capturar { display: block !important; }
-        
-        /* view-combates se maneja con JavaScript */
-        
+                
         #equipo:target ~ .page { display: none !important; }
         #equipo:target ~ #view-equipo { display: block !important; }
         
@@ -116,29 +114,28 @@
         .logo-img { width: 100%; max-height: 200px; object-fit: contain; }
         .menu-inicio {
             display: grid;
-            /* Hacemos que los botones midan al menos 220px de ancho */
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-            gap: 30px; /* Más espacio entre ellos */
-            max-width: 850px; /* Aprovechamos más el ancho de la pantalla */
+            gap: 30px; 
+            max-width: 850px; 
             margin: 0 auto;
             padding: 20px;
         }      
 
         .nes-btn.inicio {
-            padding: 30px 10px; /* Botones mucho más altos */
-            font-size: 1rem; /* Texto más grande */
+            padding: 30px 10px; 
+            font-size: 1rem; 
             display: flex;
-            flex-direction: column; /* Ponemos el ícono arriba y el texto abajo */
+            flex-direction: column; 
             align-items: center;
             justify-content: center;
-            gap: 15px; /* Espacio entre ícono y texto */
-            transition: all 0.2s ease; /* Animación suave */
-        }
+            gap: 15px; 
+            transition: all 0.2s ease; 
+            }
 
         .nes-btn.inicio:hover { 
             background: var(--azul-poke); 
             color: white; 
-            transform: scale(1.05); /* Efecto de que el botón se acerca al pasar el mouse */
+            transform: scale(1.05); 
         }
         .resources-hud {
             background: #fff;
@@ -173,7 +170,6 @@
             margin-right: auto;
         }.captura-grid {
             display: grid;
-            /* Fuerza 3 columnas exactas */
             grid-template-columns: repeat(3, 1fr); 
             gap: 20px;
             margin-top: 20px;
@@ -230,7 +226,6 @@
             gap: 10px; background: #333; padding: 10px; border: 4px solid #000;
         }
         .box-item { background: white; width:"80"; padding: 5px; font-size: 0.6rem; border: 2px solid #999; }
-        /* MODALS DE COMBATE - OVERLAY FIJO */
         .combat-modal {
             display: none;
             position: fixed;
@@ -497,7 +492,7 @@
             
             <button id="btn-lanzar" class="nes-btn is-error" onclick="lanzarPokeball()" style="padding: 15px 30px; font-size: 1rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 0 #8e0000;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png" style="width:24px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5));">
-                ¡Lanzar Ball!
+                ¡Lanzar Pokeball!
             </button>
 
         </div>
@@ -521,8 +516,8 @@
             ¿Qué quieres hacer?
         </p>
         
-        <<div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-            <label>
+        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+           <label>
                 <input type="radio" name="decision-captura" value="guardar" checked class="nes-radio">
                 <span>Guardar en Caja</span>
             </label>
@@ -563,29 +558,23 @@
             </div>
         </div>
     </section>
-    <!-- ==================== SECCIÓN: LISTA DE NIVELES ==================== -->
 <section id="view-combates" class="page" style="display: none;">
     <h1>⚔️ Combates</h1>
     
     <div id="lista-niveles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; margin: 0 auto;">
-        <!-- Se llenará con JavaScript -->
     </div>
 </section>
-<!-- ==================== SECCIÓN: DETALLE DEL NIVEL ==================== -->
 <section id="view-nivel-detalle" class="combat-modal">
     <div style="max-width: 600px; margin: 0 auto;">
         <h2 id="nivel-titulo" style="text-align: left; margin-bottom: 10px; font-size: 0.9rem;">Nivel 1</h2>
         <h3 id="nivel-nombre" style="text-align: left; margin-bottom: 30px; font-size: 0.9rem;">Nombre rival</h3>
         
         <div style="display: flex; gap: 40px; align-items: flex-start; margin-bottom: 40px;">
-            <!-- Imagen del entrenador -->
             <img id="nivel-imagen" src="" style="width: 200px; height: 300px; object-fit: contain;">
             
-            <!-- Equipo del rival -->
             <div style="flex: 1;">
                 <h3 style="margin-bottom: 15px; font-size: 0.8rem;">Equipo</h3>
                 <div id="equipo-rival" style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- Se llenará dinámicamente -->
                 </div>
             </div>
         </div>
@@ -599,18 +588,14 @@
         </div>
     </div>
 </section>
-<!-- ==================== SECCIÓN: PANTALLA DE PREDICCIÓN ==================== -->
 <section id="view-prediccion" class="combat-modal">
     <div style="max-width: 1200px; margin: 0 auto;">
         <h1 style="text-align: center; margin-bottom: 30px; font-size: 1.2rem;">📊 Predicción de Batalla</h1>
         
         <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 30px; align-items: center; min-height: 400px;">
-            <!-- Equipo Jugador (Izquierda) -->
             <div id="equipo-jugador-prediccion">
-                <!-- Se llenará dinámicamente -->
             </div>
             
-            <!-- Resultado Predicho (Centro) -->
             <div style="text-align: center;">
                 <div style="width: 220px; height: 220px; border: 5px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); box-shadow: 0 8px 16px rgba(0,0,0,0.2);">
                     <div style="text-align: center;">
@@ -622,18 +607,14 @@
                 </div>
             </div>
             
-            <!-- Equipo Rival (Derecha) -->
             <div id="equipo-rival-prediccion" style="text-align: right;">
-                <!-- Se llenará dinámicamente -->
             </div>
         </div>
         
-        <!-- Detalles de los combates individuales -->
         <div id="detalles-combates" style="margin-top: 30px; padding: 20px; background: white; border: 4px solid #333; border-radius: 10px;">
             <h3 style="font-size: 0.8rem; margin-bottom: 15px; text-align: center;">⚔️ Combates 1 vs 1</h3>
             <p style="font-size: 0.55rem; text-align: center; color: #666; margin-bottom: 15px;">Necesitas ganar 3 o más combates para ganar la batalla</p>
             <div id="lista-predicciones" style="display: flex; flex-direction: column; gap: 10px;">
-                <!-- Se llenará dinámicamente -->
             </div>
         </div>
         
@@ -648,18 +629,15 @@
         </div>
     </div>
 </section>
-<!-- ==================== SECCIÓN: RESULTADO ==================== -->
 <section id="view-resultado" class="combat-modal">
     <div style="max-width: 700px; margin: 0 auto; text-align: center;">
         <h1 id="resultado-titulo" style="font-size: 2.5rem; margin-bottom: 20px;">Ganó o Perdió</h1>
         <p id="resultado-mensaje" style="font-size: 0.8rem; color: #666; margin-bottom: 40px;">Mensaje del resultado</p>
         
-        <!-- Recompensas -->
         <div style="background: white; border: 4px solid #333; border-radius: 10px; padding: 20px; margin-bottom: 30px;">
             <h2 style="font-size: 1rem; margin-bottom: 20px;">🎁 Recompensas</h2>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                <!-- XP del Jugador -->
                 <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border: 2px solid var(--azul-poke);">
                     <div style="font-size: 0.6rem; color: #666; margin-bottom: 5px;">JUGADOR</div>
                     <div id="xp-jugador-ganada" style="font-size: 1.5rem; font-weight: bold; color: var(--azul-poke);">+100 XP</div>
@@ -668,7 +646,6 @@
                     </div>
                 </div>
                 
-                <!-- XP de Pokémon -->
                 <div style="background: #fff3e0; padding: 15px; border-radius: 8px; border: 2px solid #ff9800;">
                     <div style="font-size: 0.6rem; color: #666; margin-bottom: 5px;">CADA POKÉMON</div>
                     <div id="xp-pokemon-ganada" style="font-size: 1.5rem; font-weight: bold; color: #ff9800;">+30 XP</div>
@@ -677,11 +654,9 @@
             </div>
         </div>
         
-        <!-- Pokémon que subieron de nivel -->
         <div id="resultado-content" style="margin-bottom: 30px;">
             <h3 style="margin-bottom: 20px; font-size: 0.9rem;">⬆️ Pokémon que subieron de nivel</h3>
             <div id="pokemons-subieron" style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
-                <!-- Se llenará dinámicamente -->
             </div>
         </div>
         
@@ -788,7 +763,6 @@ console.log('✅ Script de combates cargado');
 
 
 
-// Textos de los tutoriales para cada pantalla
 const textosTutoriales = {
     '#granja': {
         titulo: '🚜 Guía de la Granja',
@@ -831,8 +805,8 @@ const textosTutoriales = {
                         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; color: #444; font-size: 0.55rem; background: #f0f0f0; padding: 10px; border-radius: 5px; border: 2px solid #ccc;">
                             <div>🌾 <b>Pradera:</b> Normal, Eléctrico, Psíquico.</div>
                             <div>🌲 <b>Bosque:</b> Planta, Bicho, Veneno, Hada.</div>
-                            <div>💧 <b>Agua:</b> Agua, Volador.</div>
-                            <div>⚙️ <b>Acero:</b> Roca, Lucha, Acero, Siniestro.</div>
+                            <div>💧 <b>Playa:</b> Agua, Volador.</div>
+                            <div>⚙️ <b>Cueva:</b> Roca, Lucha, Acero, Siniestro.</div>
                             <div>🏜️ <b>Desierto:</b> Tierra, Fuego, Fantasma.</div>
                             <div>❄️ <b>Hielo:</b> Hielo, Dragón.</div>
                         </div>
@@ -935,56 +909,47 @@ const textosTutoriales = {
         `
     }
 };
-// Función maestra
-// Función maestra (Actualizada para el botón manual)
 function revisarTutorial(hashPantalla, forzar = false) {
     const tutorial = textosTutoriales[hashPantalla];
     
     if (tutorial) {
         const yaLoVio = localStorage.getItem('visto_' + hashPantalla);
         
-        // Si NO lo vio, o si apretó el botón de Ayuda (forzar = true)...
         if (!yaLoVio || forzar) {
             document.getElementById('tut-titulo').textContent = tutorial.titulo;
             document.getElementById('tut-texto').innerHTML = tutorial.texto; 
             document.getElementById('modal-tutorial').style.display = 'flex';
             
-            // Guardamos que ya lo vio SOLO si entró naturalmente
             if (!forzar) {
                 localStorage.setItem('visto_' + hashPantalla, 'true');
             }
         }
     } else if (forzar) {
-        // Por si aprietan ayuda en la pantalla de inicio o en un lugar sin cartel
         alert("¡Explora las diferentes zonas desde el menú!");
     }
 }
 
-/// ========== DETECTAR CAMBIO DE HASH (NAVEGACIÓN) ==========
 window.addEventListener('hashchange', () => {
     const hash = window.location.hash;
     const viewCombates = document.getElementById('view-combates');
     
-    // Funciones globales de UI
     revisarTutorial(hash);
     actualizarHUDJugador();         
     actualizarContadoresBayas();
 
-    // 1. Ocultar combates si salimos de ahí
     if (hash !== '#combates') {
         if(viewCombates) viewCombates.style.display = 'none';
     }
 
-    // 2. Cargar la sección correspondiente
     if (hash === '#combates') {
         if(viewCombates) viewCombates.style.display = 'block';
         cargarCombates();
     } 
     else if (hash === '#habitats') {
-        cargarListaHabitats(); // <--- CAMBIO AQUÍ: Usamos la nueva función dinámica
+        cargarListaHabitats(); 
     } 
     else if (hash === '#capturar') {
-        cargarListaZonas();    // <--- CAMBIO AQUÍ: Usamos la nueva función dinámica
+        cargarListaZonas();    
     }
     else if (hash === '#granja') {  
         cargarGranja();
@@ -997,14 +962,12 @@ window.addEventListener('hashchange', () => {
     }
 });
 
-// ========== CARGAR AL INICIO (REFRESH) ==========
 window.addEventListener('DOMContentLoaded', async () => {
     await verificarEstadoJuego();
 
     actualizarHUDJugador();       
     actualizarContadoresBayas();
 
-    // Cargar efectividades para los combates
     try {
         const res = await fetch(`${API_URL}/tipo-efectividad`);
         if (res.ok) efectividades = await res.json();
@@ -1013,7 +976,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const hash = window.location.hash;
     const viewCombates = document.getElementById('view-combates');
     
-    // Cargar la vista inicial si estamos en una específica
     if (hash === '#combates') {
         if(viewCombates) viewCombates.style.display = 'block';
         cargarCombates();
@@ -1022,10 +984,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         cargarGranja();
     } 
     else if (hash === '#habitats') {
-        cargarListaHabitats(); // <--- CAMBIO AQUÍ
+        cargarListaHabitats(); 
     } 
     else if (hash === '#capturar') {
-        cargarListaZonas();    // <--- CAMBIO AQUÍ
+        cargarListaZonas();    
     } 
     else if (hash === '#caja') {
         cargarCaja();
@@ -1034,7 +996,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         cargarEquipo();
     }
 });
-// ========== CARGAR NIVELES ==========
 async function cargarCombates() {
     console.log('🔄 Cargando combates...');
     
@@ -1079,7 +1040,6 @@ async function cargarCombates() {
     }
 }
 
-// ========== VER DETALLE DEL NIVEL ==========
 async function verNivel(id) {
     console.log('👁️ Ver nivel:', id);
     
@@ -1106,7 +1066,6 @@ async function verNivel(id) {
         
         document.getElementById('equipo-rival').innerHTML = equipoHTML;
         
-        // Mostrar detalle
         document.getElementById('view-nivel-detalle').classList.add('active');
         
     } catch (error) {
@@ -1115,7 +1074,6 @@ async function verNivel(id) {
     }
 }
 
-// ========== CALCULAR MULTIPLICADOR (CLIENTE) ==========
 
 function calcularMultiplicadorCliente(tiposAtacante, tiposDefensor, efectividades) {
     let sumaEfectividad = 0;
@@ -1134,7 +1092,7 @@ function calcularMultiplicadorCliente(tiposAtacante, tiposDefensor, efectividade
             if (efectividad) {
                 sumaEfectividad += parseFloat(efectividad.multiplicador);
             } else {
-                sumaEfectividad += 1.0; // Daño neutro si no encuentra registro
+                sumaEfectividad += 1.0; 
             }
         }
     }
@@ -1142,12 +1100,10 @@ function calcularMultiplicadorCliente(tiposAtacante, tiposDefensor, efectividade
     return sumaEfectividad;
 }
 
-// ========== VER PREDICCIÓN ==========
 async function verPrediccion() {
     console.log('🔮 Mostrando predicción...');
     
     try {
-        // Cargar efectividades si no están disponibles
         if (!efectividades || efectividades.length === 0) {
             console.log('⚠️ Cargando efectividades...');
             const resEfectividad = await fetch(`${API_URL}/tipo-efectividad`);
@@ -1155,7 +1111,6 @@ async function verPrediccion() {
             console.log('✅ Efectividades cargadas:', efectividades.length);
         }
         
-        // Obtener equipo del jugador
         const equipoRes = await fetch(`${API_URL}/jugador/equipo`);
         equipoJugador = await equipoRes.json();
         console.log('👥 Equipo jugador:', equipoJugador);
@@ -1165,11 +1120,9 @@ async function verPrediccion() {
             return;
         }
         
-        // Ocultar detalle, mostrar predicción
         document.getElementById('view-nivel-detalle').classList.remove('active');
         document.getElementById('view-prediccion').classList.add('active');
         
-        // Renderizar equipos
         const jugadorHTML = equipoJugador.map(p => `
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 8px; border: 3px solid #333; border-radius: 8px; background: white;">
                 <img src="${p.imagen_url}" width="50" style="border: 2px solid #333; border-radius: 5px;"
@@ -1197,7 +1150,6 @@ async function verPrediccion() {
         document.getElementById('equipo-jugador-prediccion').innerHTML = jugadorHTML;
         document.getElementById('equipo-rival-prediccion').innerHTML = rivalHTML;
         
-        // ========== CALCULAR PREDICCIÓN ==========
         const totalCombates = Math.min(equipoJugador.length, entrenadorSeleccionado.pokemons.length, 5);
         const predicciones = [];
 
@@ -1234,7 +1186,6 @@ async function verPrediccion() {
             });
         }
 
-        // Calcular resultado
         let victoriasPredichasJugador = 0;
         let victoriasPredichasRival = 0;
         
@@ -1254,7 +1205,6 @@ async function verPrediccion() {
         console.log('   Victorias Rival:', victoriasPredichasRival);
         console.log('   Resultado predicho:', ganarasLaBatalla ? 'VICTORIA' : 'DERROTA\n');
         
-        // Mostrar predicciones
         const prediccionesHTML = predicciones.map(p => `
             <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; padding: 8px; border: 2px solid ${p.ganador === 'jugador' ? '#27ae60' : '#e74c3c'}; border-radius: 5px; background: ${p.ganador === 'jugador' ? '#e8f5e9' : '#ffebee'};">
                 <div style="text-align: left; font-size: 0.6rem;">
@@ -1273,7 +1223,6 @@ async function verPrediccion() {
         
         document.getElementById('lista-predicciones').innerHTML = prediccionesHTML;
         
-        // Mostrar resultado predicho
         const porcentajeElement = document.getElementById('porcentaje-victoria');
         const mensajeElement = document.getElementById('mensaje-porcentaje');
         
@@ -1296,13 +1245,11 @@ async function verPrediccion() {
     }
 }
 
-// ========== VOLVER AL DETALLE DEL NIVEL ==========
 function volverADetalleNivel() {
     document.getElementById('view-prediccion').classList.remove('active');
     document.getElementById('view-nivel-detalle').classList.add('active');
 }
 
-// ========== EJECUTAR COMBATE ==========
 async function ejecutarCombate() {
     console.log('🎲 Ejecutando combate...');
     
@@ -1329,7 +1276,6 @@ async function ejecutarCombate() {
     }
 }
 
-// ========== MOSTRAR RESULTADO ==========
 function mostrarResultado() {
     console.log('📋 Mostrando resultado...');
     
@@ -1338,17 +1284,14 @@ function mostrarResultado() {
     
     const gano = resultadoCombate.resultado === 'victoria';
     
-    // Título y mensaje
     document.getElementById('resultado-titulo').textContent = gano ? '🎉 ¡Ganaste!' : '💔 Perdiste';
     document.getElementById('resultado-titulo').style.color = gano ? 'green' : 'red';
     document.getElementById('resultado-mensaje').textContent = resultadoCombate.mensaje;
     
-    // Mostrar recompensas de XP
     document.getElementById('xp-jugador-ganada').textContent = `+${resultadoCombate.xp_jugador} XP`;
     document.getElementById('xp-pokemon-ganada').textContent = `+${resultadoCombate.xp_pokemon} XP`;
     document.getElementById('total-pokemons-text').textContent = `${resultadoCombate.total_pokemons} Pokémon`;
     
-    // Mostrar si el jugador subió de nivel
     const jugadorSubioElement = document.getElementById('jugador-subio-nivel');
     if (resultadoCombate.jugador_subio_nivel) {
         jugadorSubioElement.style.display = 'block';
@@ -1357,7 +1300,6 @@ function mostrarResultado() {
         jugadorSubioElement.style.display = 'none';
     }
     
-    // Filtrar solo Pokémon que subieron de nivel
     const subieron = resultadoCombate.pokemons_actualizados.filter(p => p.subio_nivel);
     console.log('⬆️ Pokémon que subieron:', subieron);
     
@@ -1385,11 +1327,9 @@ function mostrarResultado() {
     }
 }
 
-// ========== VOLVER A LA LISTA ==========
 function volverALista() {
     console.log('🔙 Volviendo a lista...');
     
-    // Quitar todas las clases active de los modals
     document.getElementById('view-nivel-detalle').classList.remove('active');
     document.getElementById('view-prediccion').classList.remove('active');
     document.getElementById('view-resultado').classList.remove('active');
@@ -1402,7 +1342,6 @@ function volverALista() {
     actualizarHUDJugador();
 }
 
-// ========== ACTUALIZAR CONTADORES DE HÁBITAT ==========
 async function actualizarContadoresHabitat() {
     console.log('🔄 Actualizando contadores de hábitat...');
     try {
@@ -1411,16 +1350,13 @@ async function actualizarContadoresHabitat() {
         
         const habitats = await res.json();
         
-        // 1. Reseteamos todos a 0 visualmente
         for (let i = 1; i <= 6; i++) {
             const contador = document.getElementById(`hab-count-${i}`);
             if (contador) contador.textContent = '0';
         }
 
-        // 2. Actualizamos con la info real de la base de datos
-        // Asegúrate de que tu API devuelva "habitat_id" y "cantidad_pokemons" (o el nombre que tenga tu columna count)
         habitats.forEach(h => {
-            const idHabitat = h.habitat_id || h.id; // Ajusta según tu API
+            const idHabitat = h.habitat_id || h.id; 
             const cantidad = h.cantidad_pokemons || h.total || h.count || 0;
             
             const contador = document.getElementById(`hab-count-${idHabitat}`);
@@ -1434,12 +1370,11 @@ async function actualizarContadoresHabitat() {
     }
 }
 
-// Diccionario con las fotos de fondo de cada hábitat
 const infoHabitats = {
     1: { nombre: 'Pradera', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatllanura.jpg' },
     2: { nombre: 'Bosque', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatbosque.png' },
-    3: { nombre: 'Agua', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatagua.png' },
-    4: { nombre: 'Acero', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatacero.png' },
+    3: { nombre: 'Playa', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatagua.png' },
+    4: { nombre: 'Cueva', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatacero.png' },
     5: { nombre: 'Desierto', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatdesierto.jpeg' },
     6: { nombre: 'Hielo', fondo: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitathielo.png' }
 };
@@ -1450,14 +1385,12 @@ async function cargarHabitat(id) {
     console.log('🌲 Cargando hábitat:', id);
     habitatActualId = id;
     
-    // 1. CAMBIAR FONDO Y TÍTULO SEGÚN EL HÁBITAT
     const info = infoHabitats[id];
     if (info) {
         document.getElementById('titulo-habitat-detalle').textContent = info.nombre;
         document.getElementById('fondo-habitat-detalle').src = info.fondo;
     }
 
-    // 2. PEDIR POKÉMONS A LA API
     try {
         const res = await fetch(`${API_URL}/jugador/habitats/${id}/pokemons`);
         const pokemons = await res.json();
@@ -1469,7 +1402,6 @@ async function cargarHabitat(id) {
             const pokemon = pokemons[i];
 
             if (pokemon) {
-                // Pasamos la URL de la foto para que la interacción la use después
                 contenedor.innerHTML += `
                     <a href="#poke-interaccion" class="poke-slot" 
                        onclick="interactuarPokemon(${pokemon.id}, '${pokemon.imagen_url}')">
@@ -1490,11 +1422,8 @@ async function cargarHabitat(id) {
         console.error('Error cargando habitat:', error);
     }
 }
-// Variable para recordar en qué hábitat estamos intentando añadir
 let habitatSeleccionadoId = null;
 
-// 1. ABRIR EL MODAL Y CARGAR POKÉMON DISPONIBLES
-// Variable para recordar qué tipos permite el hábitat actual
 let tiposPermitidosHabitat = [];
 
 async function abrirModalSeleccion(idHabitat) {
@@ -1505,26 +1434,22 @@ async function abrirModalSeleccion(idHabitat) {
     contenedor.innerHTML = '<p>Cargando compatibles...</p>';
 
     try {
-        // 1. Obtener Tipos Permitidos del Backend
         const resTipos = await fetch(`${API_URL}/habitats/${idHabitat}/tipos`);
         tiposPermitidosHabitat = await resTipos.json();
         
-        // Actualizar título del modal
         const tituloModal = document.querySelector('#modal-seleccion-habitat h2');
         tituloModal.innerHTML = `Elige un Pokémon<br><span style="font-size:0.6rem; color:#666;">Admite: ${tiposPermitidosHabitat.join(', ')}</span>`;
 
-        //Pedimos Pokémon y Ocupados al mismo tiempo <---
         const [res, idsEnHabitats] = await Promise.all([
             fetch(`${API_URL}/jugador/pokemons`),
             obtenerIdsPokemonsEnHabitats()
         ]);
         const pokemons = await res.json();
 
-        //Filtrar compatibles Y libres <---
         const compatibles = pokemons.filter(p => {
             const idReal = p.jugador_pokemon_id || p.id;
             const esTipoValido = p.tipos.some(tipo => tiposPermitidosHabitat.includes(tipo));
-            const estaLibre = !idsEnHabitats.includes(idReal); // <-- Filtro de ocupados
+            const estaLibre = !idsEnHabitats.includes(idReal); 
             
             return esTipoValido && estaLibre;
         });
@@ -1542,7 +1467,6 @@ async function abrirModalSeleccion(idHabitat) {
             compatibles.forEach(p => {
                 const idReal = p.id || p.jugador_pokemon_id;
                 
-                // Mostrar tipos del Pokémon
                 const tiposBadges = p.tipos.map(t => 
                     `<span style="font-size:0.5rem; background:#eee; padding:2px 4px; border-radius:3px;">${t}</span>`
                 ).join(' ');
@@ -1571,16 +1495,11 @@ async function abrirModalSeleccion(idHabitat) {
 }
 
 
-// 2. ENVIAR EL POKÉMON SELECCIONADO AL SERVIDOR
-// 2. ENVIAR EL POKÉMON SELECCIONADO AL SERVIDOR
 async function enviarPokemonAlHabitat(jugadorPokemonId) {
     if (!habitatSeleccionadoId) return;
 
-    // IMPORTANTE: Guardamos el ID en una variable local porque 
-    // cerrarModalSeleccion() va a borrar la variable global.
     const idParaRecargar = habitatSeleccionadoId;
 
-    // Efecto visual
     const lista = document.getElementById('lista-candidatos-habitat');
     lista.innerHTML = '<p style="text-align:center;">Asignando...</p>';
 
@@ -1595,18 +1514,14 @@ async function enviarPokemonAlHabitat(jugadorPokemonId) {
 
         if (data.error) {
             alert('❌ Error: ' + data.error);
-            // Si falló, volvemos a abrir la selección para ese hábitat
             abrirModalSeleccion(idParaRecargar);
         } else {
             alert('✅ ¡Pokémon añadido al hábitat!');
             
-            // 1. Cerramos el modal (esto borra habitatSeleccionadoId global)
             cerrarModalSeleccion();
             
-            // 2. Recargamos usando la VARIABLE LOCAL que guardamos al principio
             await cargarHabitat(idParaRecargar); 
             
-            // 3. Actualizamos el contador (ej: 2/6)
             actualizarContadoresHabitat(); 
         }
 
@@ -1615,25 +1530,20 @@ async function enviarPokemonAlHabitat(jugadorPokemonId) {
         alert('Error de conexión');
     }
 }
-// 3. CERRAR MODAL
 function cerrarModalSeleccion() {
     document.getElementById('modal-seleccion-habitat').classList.remove('active');
     habitatSeleccionadoId = null;
 }
-// ==================== LÓGICA DE INICIALIZACIÓN ====================
 
 async function verificarEstadoJuego() {
     try {
-        // Intentamos obtener los datos del jugador
         const res = await fetch(`${API_URL}/jugador`);
         
         if (res.status === 404) {
-            // SI NO EXISTE JUGADOR (404) -> MOSTRAR PANTALLA DE SELECCIÓN
             console.log('🆕 Nuevo jugador detectado. Iniciando selección de starter...');
             document.getElementById('view-inicializar').style.display = 'block';
             cargarStarters();
         } else {
-            // SI EXISTE -> OCULTAR PANTALLA DE SELECCIÓN
             document.getElementById('view-inicializar').style.display = 'none';
         }
     } catch (error) {
@@ -1686,7 +1596,6 @@ async function elegirStarter(idPokemon) {
             alert('Error: ' + data.error);
         } else {
             alert(`¡Genial! Has comenzado tu aventura con ${data.pokemon_starter.nombre}.`);
-            // Recargar la página para entrar al juego normal
             window.location.href = "#home";
             location.reload();
         }
@@ -1697,41 +1606,32 @@ async function elegirStarter(idPokemon) {
     }
 }
 
-// Variable global
 let pokemonInteraccionId = null;
 
 async function interactuarPokemon(id, imgUrl) {
     pokemonInteraccionId = id;
     console.log('🥕 Interactuando con:', id);
     
-    // Cambiamos de vista
     window.location.hash = '#poke-interaccion';
     
-    // 1. FOTO: Ponemos la foto que recibimos del hábitat
     if (imgUrl) {
         document.getElementById('int-img').src = imgUrl;
     }
 
-    // 2. TEXTOS: Resetear mientras carga
     document.getElementById('int-nombre').textContent = 'Cargando...';
     document.getElementById('int-apodo-input').value = '';
     document.getElementById('int-bayas-qty').textContent = '--'; 
 
-    // 3. CARGAR INVENTARIO (Agregamos el AWAIT aquí)
-    await actualizarContadoresBayas(); // <--- ¡Asegúrate de que tenga el await!
+    await actualizarContadoresBayas(); 
     
     try {
-        // ... resto del código ...
-        // 4. CARGAR DATOS DEL POKÉMON
         const resPoke = await fetch(`${API_URL}/jugador/pokemons/${id}/nivel`);
         const dataPoke = await resPoke.json();
         
-        // Actualizar textos
         const nombreMostrar = dataPoke.apodo || dataPoke.pokemon || 'Pokémon';
         document.getElementById('int-nombre').textContent = nombreMostrar;
         document.getElementById('int-apodo-input').placeholder = "Cambiar nombre";
         
-        // Actualizar barra de nivel
         actualizarBarraXP(dataPoke);
         await verificarEvolucionUI(id);
 
@@ -1740,11 +1640,9 @@ async function interactuarPokemon(id, imgUrl) {
         alert('Error al cargar datos del Pokémon');
     }
 }
-// Helper para actualizar la barra visualmente
 function actualizarBarraXP(data) {
     document.getElementById('int-nivel').textContent = `Nivel ${data.nivel}`;
     
-    // Si es nivel máximo
     if (data.max_nivel) {
         document.getElementById('int-xp-text').textContent = 'MÁXIMO';
         document.getElementById('int-progress').value = 100;
@@ -1758,7 +1656,6 @@ function actualizarBarraXP(data) {
     }
 }
 
-// 2. ALIMENTAR POKÉMON
 async function accionAlimentar() {
     if (!pokemonInteraccionId) return;
     
@@ -1771,10 +1668,8 @@ async function accionAlimentar() {
         if (data.error) {
             alert('❌ ' + (data.mensaje || data.error));
         } else {
-            // Obligamos a la pantalla de cuidados a leer el nuevo total de Neon
             await actualizarContadoresBayas(); 
             
-            // Actualizamos la barra de nivel del Pokémon
             const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
             const dataPoke = await resPoke.json();
             actualizarBarraXP(dataPoke);
@@ -1785,7 +1680,6 @@ async function accionAlimentar() {
             }
         }
             
-            // Recargar barra de XP visualmente
             const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
             const dataPoke = await resPoke.json();
             actualizarBarraXP(dataPoke);
@@ -1796,14 +1690,12 @@ async function accionAlimentar() {
     }
 }
 
-// 4. QUITAR DEL HÁBITAT
 async function accionQuitarDelHabitat() {
     if (!pokemonInteraccionId || !habitatActualId) return;
 
     if (!confirm("¿Quieres devolver este Pokémon a la caja?")) return;
 
     try {
-        // Llamamos a DELETE en la API
         const res = await fetch(`${API_URL}/jugador/habitats/${habitatActualId}/pokemons/${pokemonInteraccionId}`, {
             method: 'DELETE'
         });
@@ -1812,8 +1704,6 @@ async function accionQuitarDelHabitat() {
         if (data.error) {
             alert('Error: ' + data.error);
         } else {
-            // ÉXITO: Cerramos la interacción. 
-            // La función cerrarInteraccion() ya se encarga de recargar el hábitat automáticamente.
             alert('Pokémon enviado a la caja.');
             cerrarInteraccion();
         }
@@ -1823,18 +1713,14 @@ async function accionQuitarDelHabitat() {
     }
 }
 
-// 1. ABRIR EL MENÚ DE OPCIONES
 function abrirMenuSacar() {
-    // Ponemos el nombre del Pokémon en el título
     const nombre = document.getElementById('int-nombre').textContent;
     document.getElementById('nombre-sacar-pokemon').textContent = nombre;
     
-    // Mostramos el modal (usando flex para centrarlo)
     const modal = document.getElementById('modal-sacar-opciones');
     modal.style.display = 'flex'; 
 }
 
-// 2. EJECUTAR LA ACCIÓN ELEGIDA
 async function ejecutarSalida(accion) {
     if (!pokemonInteraccionId) return;
     
@@ -1845,23 +1731,18 @@ async function ejecutarSalida(accion) {
         let url, method, mensajeExito;
 
         if (accion === 'caja') {
-            // --- OPCIÓN A: GUARDAR EN CAJA ---
-            // Solo borramos la relación con el hábitat
             url = `${API_URL}/jugador/habitats/${habitatActualId}/pokemons/${pokemonInteraccionId}`;
-            method = 'DELETE'; // Esto llama a quitarPokemonHabitat en backend
+            method = 'DELETE'; 
             mensajeExito = `✅ ${nombre} ha sido enviado a tu Caja Pokémon.`;
 
         } else if (accion === 'liberar') {
-            // --- OPCIÓN B: LIBERAR PARA SIEMPRE ---
             if (!confirm(`¿Estás 100% seguro de liberar a ${nombre}?\n\nNO podrás recuperarlo.`)) return;
             
-            // Borramos el Pokémon entero
             url = `${API_URL}/jugador/pokemons/${pokemonInteraccionId}`; 
-            method = 'DELETE'; // Esto llama a eliminarPokemon en backend
+            method = 'DELETE'; 
             mensajeExito = `👋 Adiós, ${nombre}. Fue liberado correctamente.`;
         }
 
-        // Ejecutar llamada
         const res = await fetch(url, { method: method });
         const data = await res.json();
 
@@ -1869,8 +1750,8 @@ async function ejecutarSalida(accion) {
             alert('Error: ' + data.error);
         } else {
             alert(mensajeExito);
-            modal.style.display = 'none'; // Cerrar modal
-            cerrarInteraccion();          // Volver al hábitat y recargar
+            modal.style.display = 'none'; 
+            cerrarInteraccion();          
         }
 
     } catch (error) {
@@ -1879,7 +1760,6 @@ async function ejecutarSalida(accion) {
     }
 }
 
-// 3. CAMBIAR APODO
 async function guardarApodo() {
     const nuevoApodo = document.getElementById('int-apodo-input').value;
     if (!nuevoApodo || !pokemonInteraccionId) return;
@@ -1905,20 +1785,16 @@ async function guardarApodo() {
     }
 }
 
-// Variable global para controlar el reloj y que no se vuelva loco
 let intervaloGranja = null;
 
 async function cargarGranja() {
-    // 1. LIMPIEZA: Si ya había un reloj corriendo, lo paramos para reiniciarlo
     if (intervaloGranja) clearInterval(intervaloGranja);
 
     const nivelesDesbloqueo = { 2: 3, 3: 6, 4: 12, 5: 18, 6: 25 };
 
     try {
-        // --- Actualizar Contadores (Inventario) ---
         await actualizarContadoresBayas();
 
-        // --- Cargar Datos de Granja ---
         const res = await fetch(`${API_URL}/jugador/granjas`);
         if (!res.ok) {
             document.getElementById('lista-granjas').innerHTML = '<p>Error de conexión.</p>';
@@ -1935,7 +1811,6 @@ async function cargarGranja() {
             return;
         }
 
-        // --- RENDERIZAR PARCELAS ---
         listaGranjas.forEach(g => {
             const numero = g.numero_granja;
             const imagenGranja = "https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/imagen%20granja/granjasinfondo.png";
@@ -1962,7 +1837,6 @@ async function cargarGranja() {
                 botonAccion = `<button class="nes-btn is-disabled" style="width: 100%; font-size: 0.7rem; margin-top: 10px;">BLOQUEADO</button>`;
 
             } else {
-                // --- DESBLOQUEADO ---
                 imagenHTML = `
                     <div style="width: 100%; height: 120px; display:flex; align-items:center; justify-content:center;">
                         <img src="${imagenGranja}" style="height: 100%; width: auto; filter: drop-shadow(0 4px 0 rgba(0,0,0,0.2));">
@@ -1970,21 +1844,17 @@ async function cargarGranja() {
                 `;
 
                 if (g.puede_recolectar) {
-                    // LISTO PARA RECOLECTAR
                     botonAccion = `
                         <button class="nes-btn is-warning" onclick="recolectar(${g.granja_id})" style="width: 100%; font-size: 0.7rem; margin-top: 10px; padding: 5px;">
                             RECOLECTAR (+10 🍒)
                         </button>`;
                 } else {
-                    // CRECIENDO (Aquí está la magia del timer)
                     let segundosRestantes = Math.floor(g.tiempo_restante);
                     
-                    // Formato inicial MM:SS
                     const min = Math.floor(segundosRestantes / 60);
                     const seg = segundosRestantes % 60;
                     const textoInicial = `⏳ ${min}:${seg.toString().padStart(2, '0')}`;
 
-                    // Agregamos la clase "granja-timer" y el atributo "data-segundos"
                     botonAccion = `
                         <button class="nes-btn is-primary granja-timer" 
                                 data-segundos="${segundosRestantes}"
@@ -2005,14 +1875,11 @@ async function cargarGranja() {
             `;
         });
 
-         // --- INICIAR EL RELOJ EN VIVO ---
         intervaloGranja = setInterval(async () => {
-            // Actualizar contador de bayas cada segundo
             await actualizarContadoresBayas();
             
             const timers = document.querySelectorAll('.granja-timer');
             
-            // Si no hay timers activos, solo actualizamos el contador y salimos
             if (timers.length === 0) {
                 return;
             };
@@ -2023,17 +1890,13 @@ async function cargarGranja() {
                 let segs = parseInt(btn.getAttribute('data-segundos'));
                 
                 if (segs > 0) {
-                    segs--; // Restamos 1 segundo
-                    btn.setAttribute('data-segundos', segs); // Guardamos el nuevo valor
+                    segs--;
+                    btn.setAttribute('data-segundos', segs);
                     
-                    // Actualizamos texto visualmente
                     const m = Math.floor(segs / 60);
                     const s = segs % 60;
                     btn.innerHTML = `⏳ ${m}:${s.toString().padStart(2, '0')}`;
                 } else {
-                    // ¡SE ACABÓ EL TIEMPO!
-                    // Recargamos toda la granja para que aparezca el botón de "RECOLECTAR"
-                    // (Solo lo hacemos una vez para evitar bucles infinitos)
                     if (!btn.classList.contains('finalizado')) {
                         btn.classList.add('finalizado');
                         algunCambio = true;
@@ -2041,7 +1904,6 @@ async function cargarGranja() {
                 }
             });
 
-            // Si algún contador llegó a 0, recargamos la vista completa
             if (algunCambio) {
                 cargarGranja();
             }
@@ -2050,7 +1912,6 @@ async function cargarGranja() {
 
     } catch (error) { console.error('Error cargando granja:', error); }
 }
-// ==================== FUNCIONES DE GRANJA ====================
 
 async function recolectar(granjaId) {
     try {
@@ -2066,7 +1927,7 @@ async function recolectar(granjaId) {
             alert(data.mensaje || data.error);
       } else {
     console.log("✅ Recolectado con éxito");
-    await actualizarContadoresBayas(); // <-- AGREGA ESTA LÍNEA AQUÍ
+    await actualizarContadoresBayas(); 
     await cargarGranja(); 
     await actualizarHUDJugador();
 }
@@ -2076,21 +1937,17 @@ async function recolectar(granjaId) {
     }
 }
 
-// --- FUNCIÓN MAESTRA PARA ACTUALIZAR CONTADORES ---
 async function actualizarContadoresBayas() {
     try {
-        // El "?t=" + Date.now() es el "descongelante"
         const res = await fetch(`${API_URL}/jugador/inventario?t=${Date.now()}`);
         if (res.ok) {
             const inventario = await res.json();
             
-            // Buscamos la Baya (ID 1)
             const bayas = inventario.find(i => i.fruta_id === 1 || i.id === 1);
             const cantidadReal = bayas ? bayas.cantidad : 0;
 
             console.log("🔄 Cantidad real detectada:", cantidadReal);
 
-            // ACTUALIZACIÓN MANUAL FORZOSA
             const cGranja = document.getElementById('contador-bayas-granja');
             const cAlimentar = document.getElementById('int-bayas-qty');
 
@@ -2103,28 +1960,24 @@ async function actualizarContadoresBayas() {
         console.error("❌ Error de sincronización:", error);
     }
 }
-// 4. CERRAR
 function cerrarInteraccion() {
-    // Volvemos al habitat anterior (usando la variable global que creamos antes)
     if (habitatActualId) {
-        cargarHabitat(habitatActualId); // Recargar para ver cambios (nivel, nombre)
+        cargarHabitat(habitatActualId);
         window.location.hash = '#habitat-detalle';
     } else {
         window.location.hash = '#habitats';
     }
 }
 
-// --- FUNCIONES DE EVOLUCIÓN ---
 
 async function verificarEvolucionUI(id) {
     const zonaEvo = document.getElementById('zona-evolucion');
-    zonaEvo.style.display = 'none'; // Ocultar por defecto
+    zonaEvo.style.display = 'none'; 
 
     try {
         const res = await fetch(`${API_URL}/jugador/pokemons/${id}/puede-evolucionar`);
         const data = await res.json();
 
-        // Si puede evolucionar, mostramos el botón mágico
         if (data.puede_evolucionar) {
             zonaEvo.style.display = 'block';
             console.log("✨ Evolución disponible:", data.mensaje);
@@ -2153,17 +2006,13 @@ async function realizarEvolucion() {
             btn.textContent = textoOriginal;
             btn.disabled = false;
         } else {
-            // ¡ÉXITO! Animación y actualización
             alert(`✨ ¡Enhorabuena! Tu ${data.pokemon_anterior} evolucionó a ${data.pokemon_nuevo}! ✨`);
             
-            // 1. Actualizar Foto y Nombre
             document.getElementById('int-img').src = data.pokemon.imagen_url;
             document.getElementById('int-nombre').textContent = data.pokemon.apodo || data.pokemon.nombre;
             
-            // 2. Ocultar botón de evolución
             document.getElementById('zona-evolucion').style.display = 'none';
 
-            // 3. Recargar datos del nivel (por si cambiaron stats o algo visual)
             const resPoke = await fetch(`${API_URL}/jugador/pokemons/${pokemonInteraccionId}/nivel`);
             const dataPoke = await resPoke.json();
             actualizarBarraXP(dataPoke);
@@ -2177,11 +2026,9 @@ async function realizarEvolucion() {
     }
 }
 
-// Variable global para saber dónde estamos y qué atrapamos
 let zonaActualId = null;
 let pokemonCapturadoTempId = null; 
 
-// Imágenes de fondo para cada zona (Coinciden con tus IDs de BD)
 const fondosZonas = {
     1: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturallanura.png',
     2: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturabosque.png',
@@ -2191,23 +2038,19 @@ const fondosZonas = {
     6: 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturahielo.png'
 };
 
-// 1. ENTRAR A LA ZONA
 function cargarEscenario(zonaId) {
     zonaActualId = zonaId;
     const fondo = fondosZonas[zonaId] || fondosZonas[1];
     
-    // Configurar vista
     document.getElementById('img-escenario-fondo').src = fondo;
     document.getElementById('titulo-zona-captura').textContent = "Explorando...";
     
-    // Resetear botón
     const btn = document.getElementById('btn-lanzar');
     btn.disabled = false;
     btn.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Pokebola-pokeball-png-0.png" style="width:24px;"> ¡Lanzar Ball!';
-    btn.className = "nes-btn is-error"; // Rojo
+    btn.className = "nes-btn is-error"; 
 }
 
-// 2. LANZAR POKÉBALL (Llamada al Backend)
 async function lanzarPokeball() {
     const btn = document.getElementById('btn-lanzar');
     btn.disabled = true;
@@ -2215,7 +2058,6 @@ async function lanzarPokeball() {
     btn.className = "nes-btn is-disabled";
 
     try {
-        // Llamamos a tu API: POST /api/zonas/:id/capturar
         const res = await fetch(`${API_URL}/zonas/${zonaActualId}/capturar`, {
             method: 'POST'
         });
@@ -2223,26 +2065,20 @@ async function lanzarPokeball() {
 
         if (data.error) {
             alert(data.mensaje || data.error);
-            // Si la caja está llena, el botón permite intentar de nuevo tras liberar espacio
             btn.innerHTML = "Caja Llena";
             return;
         }
 
-        // ¡CAPTURA EXITOSA!
-        pokemonCapturadoTempId = data.jugador_pokemon_id; // Guardamos ID por si lo libera
+        pokemonCapturadoTempId = data.jugador_pokemon_id; 
 
-        // Llenar datos en la pantalla de resultado
         document.getElementById('res-img-pokemon').src = data.imagen_url;
         document.getElementById('res-nombre-pokemon').textContent = data.nombre;
         
-        // Mostrar tipos si están disponibles
         const tiposTexto = data.tipos ? data.tipos.join(' / ') : 'Desconocido';
         document.getElementById('res-tipos-pokemon').textContent = tiposTexto;
 
-        // Resetear radio buttons (siempre marcado "Guardar" por defecto)
         document.querySelectorAll('input[name="decision-captura"]')[0].checked = true;
 
-        // Ir a la pantalla de resultado
         window.location.hash = '#captura-resultado';
 
     } catch (error) {
@@ -2254,16 +2090,13 @@ async function lanzarPokeball() {
     }
 }
 
-// 3. CONFIRMAR (Guardar o Liberar)
 async function finalizarCaptura() {
-    // Ver qué eligió el usuario
     const accion = document.querySelector('input[name="decision-captura"]:checked').value;
 
     if (accion === 'liberar' && pokemonCapturadoTempId) {
         if (!confirm("¿Seguro? Si lo liberas no podrás recuperarlo.")) return;
 
         try {
-            // Llamamos a la API para borrarlo
             const res = await fetch(`${API_URL}/jugador/pokemons/${pokemonCapturadoTempId}`, {
                 method: 'DELETE'
             });
@@ -2281,31 +2114,19 @@ async function finalizarCaptura() {
         alert("¡Pokémon enviado a tu Caja!");
     }
 
-    // Volver al menú de zonas para seguir capturando
     window.location.hash = '#capturar';
 }
 
 
-// --- FUNCIÓN GLOBAL: ACTUALIZAR HUD DEL JUGADOR (Nivel/XP) ---
-// --- FUNCIÓN GLOBAL: ACTUALIZAR HUD DEL JUGADOR ---
-// --- FUNCIÓN GLOBAL: ACTUALIZAR HUD DEL JUGADOR (Nivel/XP) ---
 async function actualizarHUDJugador() {
     try {
-        // 1. FORZAMOS VERIFICACIÓN: Le decimos al backend "revisa si debo subir de nivel"
-        // (Esto arregla el problema de tener 270 XP y seguir en Nivel 1)
         await fetch(`${API_URL}/jugador/verificar-nivel`, { method: 'POST' });
 
-        // 2. OBTENEMOS DATOS PRE-CALCULADOS
         const res = await fetch(`${API_URL}/jugador/nivel`);
         
         if (res.ok) {
             const data = await res.json();
             
-            // data.nivel (ej: 3)
-            // data.xp_en_nivel_actual (ej: 70)
-            // data.xp_para_subir (ej: 100)
-            
-            // 3. ACTUALIZAR EL HTML
             const elNivel = document.getElementById('hud-nivel-num');
             const elTexto = document.getElementById('hud-xp-texto');
             const elBarra = document.getElementById('hud-xp-bar');
@@ -2325,7 +2146,6 @@ async function actualizarHUDJugador() {
     }
 }
 
-// ==================== FUNCIONES DE LA CAJA ====================
 let pokemonsEnCaja = []; 
 let pokemonCajaSeleccionado = null;
 
@@ -2337,7 +2157,6 @@ async function cargarCaja() {
     contenedor.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">Cargando...</p>';
 
     try {
-        // 1. Obtener TODOS mis Pokémon y los IDs de los que están ocupados
         const [resPokemons, idsEnHabitats] = await Promise.all([
             fetch(`${API_URL}/jugador/pokemons`),
             obtenerIdsPokemonsEnHabitats()
@@ -2345,21 +2164,17 @@ async function cargarCaja() {
         
         const todosLosPokemons = await resPokemons.json();
 
-        // 2. Obtener capacidad máxima de inventario
         const resNivel = await fetch(`${API_URL}/jugador/nivel`);
         const datosNivel = await resNivel.json();
         const capacidadMax = datosNivel.slots_inventario || 10;
 
-        // 3. FILTRAR: Solo nos quedamos con los que NO están en hábitats
         pokemonsEnCaja = todosLosPokemons.filter(p => {
             const id = p.jugador_pokemon_id || p.id;
-            return !idsEnHabitats.includes(id); // Si NO está en la lista de ocupados, se queda en la caja
+            return !idsEnHabitats.includes(id);
         });
 
-        // 4. Actualizar título (Mostramos el total de Pokémon vs Capacidad Máxima)
         titulo.textContent = `Mi Caja (${todosLosPokemons.length}/${capacidadMax})`;
 
-        // 5. Renderizar
         if (pokemonsEnCaja.length === 0) {
             contenedor.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; padding: 20px;">Tu caja está vacía o todos tus Pokémon están entrenando en hábitats.</p>';
             return;
@@ -2379,7 +2194,6 @@ async function cargarCaja() {
     }
 }
 
-// Mostrar modal de detalle al hacer clic en un Pokémon de la caja
 function verDetalleCaja(id) {
     const p = pokemonsEnCaja.find(poke => poke.jugador_pokemon_id === id);
     if (!p) return;
@@ -2393,7 +2207,6 @@ function verDetalleCaja(id) {
     document.getElementById('modal-opciones-caja').style.display = 'flex';
 }
 
-// Acción de liberar desde la caja
 document.getElementById('btn-liberar-caja').onclick = async () => {
     if (!pokemonCajaSeleccionado) return;
     const nombre = pokemonCajaSeleccionado.apodo || pokemonCajaSeleccionado.nombre;
@@ -2407,9 +2220,9 @@ document.getElementById('btn-liberar-caja').onclick = async () => {
         if (data.error) {
             alert(data.error);
         } else {
-            alert(data.mensaje); // "Pikachu ha sido liberado"
+            alert(data.mensaje); 
             document.getElementById('modal-opciones-caja').style.display = 'none';
-            cargarCaja(); // Recargar la vista de la caja automáticamente
+            cargarCaja(); 
         }
     } catch (e) { 
         console.error(e); 
@@ -2417,7 +2230,6 @@ document.getElementById('btn-liberar-caja').onclick = async () => {
     }
 }
 
-// ==================== FUNCIONES DE EQUIPO ====================
 let posicionEquipoSeleccionada = null;
 
 async function cargarEquipo() {
@@ -2427,19 +2239,15 @@ async function cargarEquipo() {
 
     try {
         const res = await fetch(`${API_URL}/jugador/equipo`);
-        // Si no hay equipo, la API devuelve error o vacío, lo manejamos.
         const equipo = res.ok ? await res.json() : [];
-        const equipoData = Array.isArray(equipo) ? equipo : []; // Aseguramos que sea array
+        const equipoData = Array.isArray(equipo) ? equipo : []; 
         
         let html = '';
         
-        // Creamos SIEMPRE 5 slots
         for (let i = 1; i <= 5; i++) {
-            // Buscamos si hay un Pokémon en esta posición específica
             const pokemonEnSlot = equipoData.find(p => p.posicion === i);
 
             if (pokemonEnSlot) {
-                // SLOT OCUPADO
                 html += `
                 <div class="team-slot">
                     <div class="team-info">
@@ -2454,7 +2262,6 @@ async function cargarEquipo() {
                 </div>
                 `;
             } else {
-                // SLOT VACÍO
                 html += `
                 <div class="team-slot slot-empty" onclick="abrirModalEquipo(${i})">
                     <span style="font-weight: bold; margin-right: 10px;">#${i}</span> + AÑADIR POKÉMON
@@ -2479,7 +2286,6 @@ async function abrirModalEquipo(pos) {
     contenedor.innerHTML = 'Cargando...';
     
     try {
-        // Pedimos TODOS los pokemons y LOS DEL EQUIPO al mismo tiempo
         const [resPokemons, resEquipo] = await Promise.all([
             fetch(`${API_URL}/jugador/pokemons`),
             fetch(`${API_URL}/jugador/equipo`)
@@ -2489,7 +2295,6 @@ async function abrirModalEquipo(pos) {
         const equipoActual = resEquipo.ok ? await resEquipo.json() : [];
         const equipoData = Array.isArray(equipoActual) ? equipoActual : [];
         
-        // Filtramos para NO mostrar los que ya están en el equipo
         const idsEnEquipo = equipoData.map(p => p.jugador_pokemon_id);
         const disponibles = todos.filter(p => !idsEnEquipo.includes(p.jugador_pokemon_id));
         
@@ -2521,7 +2326,6 @@ function cerrarModalEquipo() {
 
 async function asignarAlEquipo(idPokemon) {
     try {
-        // Mandamos a guardar en la base de datos
         const res = await fetch(`${API_URL}/jugador/equipo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2533,7 +2337,7 @@ async function asignarAlEquipo(idPokemon) {
             alert(data.error);
         } else {
             cerrarModalEquipo();
-            cargarEquipo(); // Recargamos para que se vea el nuevo pokemon
+            cargarEquipo(); 
         }
     } catch (error) {
         console.error(error);
@@ -2543,24 +2347,21 @@ async function asignarAlEquipo(idPokemon) {
 
 async function quitarDelEquipo(posicion) {
     try {
-        // Mandamos a borrar de la base de datos
         const res = await fetch(`${API_URL}/jugador/equipo/${posicion}`, { method: 'DELETE' });
         const data = await res.json();
         
         if (data.error) {
             alert(data.error);
         } else {
-            cargarEquipo(); // Recargamos para que el slot vuelva a quedar "Vacío"
+            cargarEquipo(); 
         }
     } catch (error) {
         console.error(error);
     }
 }
-// NUEVA FUNCIÓN: Busca qué Pokémon ya están asignados a hábitats
 async function obtenerIdsPokemonsEnHabitats() {
     let idsOcupados = [];
     try {
-        // Consultamos los 6 hábitats al mismo tiempo para ser rápidos
         const promesas = [1,2,3,4,5,6].map(id => 
             fetch(`${API_URL}/jugador/habitats/${id}/pokemons`).then(r => r.ok ? r.json() : [])
         );
@@ -2568,7 +2369,7 @@ async function obtenerIdsPokemonsEnHabitats() {
         
         resultados.forEach(lista => {
             lista.forEach(p => {
-                if (p) { // Si el slot no está vacío
+                if (p) { 
                     idsOcupados.push(p.jugador_pokemon_id || p.id);
                 }
             });
@@ -2580,7 +2381,6 @@ async function obtenerIdsPokemonsEnHabitats() {
 }
 
 
-// ==================== BORRAR PARTIDA ====================
 async function borrarPartida() {
     const seguro = confirm("⚠️ ¿Estás 100% seguro de que quieres BORRAR TU PARTIDA?\n\nPerderás todos tus Pokémon, niveles y granjas para siempre.");
     
@@ -2592,7 +2392,6 @@ async function borrarPartida() {
         if (res.ok) {
             alert("Partida borrada. Comenzarás tu aventura desde cero.");
             
-            // 👇 ¡AQUÍ ESTÁ LA MAGIA! Esto borra la memoria de los tutoriales vistos
             localStorage.clear(); 
             
             window.location.hash = "#home";
@@ -2607,17 +2406,15 @@ async function borrarPartida() {
     }
 }
 
-// --- GESTIÓN DE HÁBITATS ---
 
 async function cargarListaHabitats() {
     const contenedor = document.getElementById('lista-habitats-dinamica');
     contenedor.innerHTML = '<p>Cargando...</p>';
 
     try {
-        // 1. Pedimos la lista de hábitats (definición) y los contadores del jugador
         const [resDefs, resJug] = await Promise.all([
-            fetch(`${API_URL}/habitats`),        // Todos los hábitats existentes
-            fetch(`${API_URL}/jugador/habitats`) // Cuántos pokes tiene el jugador en cada uno
+            fetch(`${API_URL}/habitats`),        
+            fetch(`${API_URL}/jugador/habitats`)
         ]);
 
         const definiciones = await resDefs.json();
@@ -2626,10 +2423,8 @@ async function cargarListaHabitats() {
         contenedor.innerHTML = '';
 
         definiciones.forEach(h => {
-            // Buscamos si el jugador tiene pokes aquí
             const dato = contadores.find(c => c.habitat_id === h.id) || { cantidad_pokemons: 0 };
             
-            // DIBUJAMOS LA TARJETA USANDO TU DISEÑO EXACTO
             contenedor.innerHTML += `
                 <div class="gen-card nes-container is-rounded" style="position: relative; padding-top: 30px;">
                     
@@ -2650,16 +2445,13 @@ async function cargarListaHabitats() {
     } catch (e) { console.error(e); contenedor.innerHTML = 'Error cargando datos.'; }
 }
 
-// Función auxiliar para entrar (Reemplaza la lógica anterior)
 async function entrarHabitat(id, nombre, imagen) {
     habitatActualId = id;
     document.getElementById('titulo-habitat-detalle').textContent = nombre;
     document.getElementById('fondo-habitat-detalle').src = imagen;
-    // Reutilizamos tu función existente para cargar los pokes
     await cargarHabitat(id); 
 }
 
-// --- ACCIONES DE BOTONES (HABITATS) ---
 
 async function crearNuevoHabitat() {
     const nombre = prompt("Nombre del Hábitat (ej: Volcán):");
@@ -2671,7 +2463,6 @@ async function crearNuevoHabitat() {
     const tiposRaw = prompt("Tipos permitidos separados por coma (ej: Fuego, Dragon, Normal):");
     if (!tiposRaw) return;
 
-    // Convertimos el texto "Agua, Fuego" en un array ["Agua", "Fuego"]
     const tiposArray = tiposRaw.split(',').map(t => t.trim());
 
     try {
@@ -2716,7 +2507,6 @@ async function eliminarHabitat(id) {
     cargarListaHabitats();
 }
 
-// --- GESTIÓN DE ZONAS ---
 
 async function cargarListaZonas() {
     const contenedor = document.getElementById('lista-zonas-dinamica');
@@ -2748,20 +2538,17 @@ async function cargarListaZonas() {
     } catch (e) { console.error(e); }
 }
 
-// Modificamos ligeramente cargarEscenario para aceptar la imagen como parámetro
 function cargarEscenario(zonaId, imagenUrl) {
     zonaActualId = zonaId;
     document.getElementById('img-escenario-fondo').src = imagenUrl;
     document.getElementById('titulo-zona-captura').textContent = "Explorando...";
     
-    // Resetear botón de lanzar
     const btn = document.getElementById('btn-lanzar');
     btn.disabled = false;
     btn.innerHTML = '¡Lanzar Ball!';
     btn.className = "nes-btn is-error"; 
 }
 
-// --- ACCIONES DE BOTONES (ZONAS) ---
 
 async function crearNuevaZona() {
     const nombre = prompt("Nombre de la Zona (ej: Montaña Rocosa):");
@@ -2788,7 +2575,6 @@ async function crearNuevaZona() {
 
         if (res.ok) {
             alert("✅ Zona creada con éxito.");
-            // Forzamos la recarga de la lista
             await cargarListaZonas(); 
         } else {
             const err = await res.json();
