@@ -257,16 +257,68 @@ app.delete('/api/jugador/pokemons/:id', async (req, res) => {
 // Borrar jugador (Reiniciar Partida - DELETE CRUD)
 app.delete('/api/jugador', async (req, res) => {
   try {
-    const result = await borrarJugador();
+    await dbClient.query('BEGIN');
 
-    if (result.error) {
-      return res.status(404).json(result);
-    }
+    // 1. Limpiamos TODO y reseteamos los contadores de ID a 1
+    // RESTART IDENTITY hace que el próximo ID sea 1 de nuevo
+    // CASCADE borra automáticamente las tablas relacionadas (tipos aceptados, pokemons en zonas, etc.)
+    await dbClient.query('TRUNCATE jugadores, habitats, zonas, granjas, jugador_frutas RESTART IDENTITY CASCADE');
 
-    res.json(result);
+    // 2. Re-insertamos los 6 Hábitats originales
+    await dbClient.query(`
+      INSERT INTO habitats (id, tipo, capacidad, imagen_url) VALUES
+      (1, 'Pradera', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatllanura.jpg'),
+      (2, 'Bosque', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatbosque.png'),
+      (3, 'Agua', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatagua.png'),
+      (4, 'Acero', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatacero.png'),
+      (5, 'Desierto', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatdesierto.jpeg'),
+      (6, 'Hielo', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitathielo.png');
+    `);
+
+    // 3. Re-insertamos los Tipos Aceptados para esos hábitats
+    await dbClient.query(`
+      INSERT INTO habitat_tipos_aceptados (habitat_id, tipo_nombre) VALUES
+      (1, 'Normal'), (1, 'Eléctrico'), (1, 'Psíquico'),
+      (2, 'Planta'), (2, 'Bicho'), (2, 'Veneno'), (2, 'Hada'),
+      (3, 'Agua'), (3, 'Volador'),
+      (4, 'Roca'), (4, 'Lucha'), (4, 'Acero'), (4, 'Siniestro'),
+      (5, 'Tierra'), (5, 'Fuego'), (5, 'Fantasma'),
+      (6, 'Hielo'), (6, 'Dragón');
+    `);
+
+    // 4. Re-insertamos las 6 Zonas originales
+    await dbClient.query(`
+      INSERT INTO zonas (id, nombre, descripcion, imagen_url) VALUES
+      (1, 'Pradera', 'Campos abiertos', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturallanura.png'),
+      (2, 'Bosque', 'Bosque frondoso', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturabosque.png'),
+      (3, 'Playa', 'Costa marina', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturaplaya.png'),
+      (4, 'Cueva', 'Cueva oscura', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturacueva.png'),
+      (5, 'Desierto', 'Desierto árido', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturadesierto.png'),
+      (6, 'Nieve', 'Montañas nevadas', 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturahielo.png');
+    `);
+
+    // 5. Re-insertamos los Tipos para las zonas
+    await dbClient.query(`
+      INSERT INTO zona_tipos (zona_id, tipo_id) 
+      SELECT 1, id FROM tipos WHERE nombre IN ('Normal', 'Eléctrico', 'Psíquico') UNION ALL
+      SELECT 2, id FROM tipos WHERE nombre IN ('Planta', 'Bicho', 'Veneno', 'Hada') UNION ALL
+      SELECT 3, id FROM tipos WHERE nombre IN ('Agua', 'Volador') UNION ALL
+      SELECT 4, id FROM tipos WHERE nombre IN ('Roca', 'Lucha', 'Acero', 'Siniestro') UNION ALL
+      SELECT 5, id FROM tipos WHERE nombre IN ('Tierra', 'Fuego', 'Fantasma') UNION ALL
+      SELECT 6, id FROM tipos WHERE nombre IN ('Hielo', 'Dragón');
+    `);
+
+    // 6. Sincronizamos las secuencias para que el próximo manual sea ID 7
+    await dbClient.query("SELECT setval('habitats_id_seq', 6, true)");
+    await dbClient.query("SELECT setval('zonas_id_seq', 6, true)");
+
+    await dbClient.query('COMMIT');
+    res.json({ message: '¡Partida y mundo reiniciados de fábrica!' });
+
   } catch (error) {
-    console.error('Error al borrar jugador:', error);
-    res.status(500).json({ error: 'Error interno del servidor al borrar la partida' });
+    await dbClient.query('ROLLBACK');
+    console.error('Error crítico al reiniciar:', error);
+    res.status(500).json({ error: 'No se pudo reiniciar el mundo correctamente.' });
   }
 });
 
@@ -635,6 +687,157 @@ app.put('/api/jugador/pokemons/:id/apodo', async (req, res) => {
     const { apodo } = req.body;
     const resultado = await cambiarApodo(req.params.id, apodo);
     res.json(resultado);
+});
+
+// ==================== GESTIÓN DE HÁBITATS (ADMIN) ====================
+
+app.post('/api/habitats', async (req, res) => {
+    const { nombre, imagen_url, tiposAceptados } = req.body; 
+    
+    if (!tiposAceptados || !Array.isArray(tiposAceptados)) {
+        return res.status(400).json({ error: "Debes especificar tipos compatibles." });
+    }
+
+    try {
+        await dbClient.query('BEGIN');
+
+        // 1. Crear el hábitat global
+        const result = await dbClient.query(
+            'INSERT INTO habitats (tipo, imagen_url, capacidad) VALUES ($1, $2, 6) RETURNING *',
+            [nombre, imagen_url]
+        );
+        const nuevoHabitat = result.rows[0];
+
+        // 2. Vincular tipos aceptados
+        for (const nombreTipo of tiposAceptados) {
+            await dbClient.query(
+                'INSERT INTO habitat_tipos_aceptados (habitat_id, tipo_nombre) VALUES ($1, $2)',
+                [nuevoHabitat.id, nombreTipo.trim()]
+            );
+        }
+
+        // 3. DESBLOQUEAR PARA EL JUGADOR ACTUAL (Solución al error "no desbloqueado")
+        const jugadorRes = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
+        const jugadorId = jugadorRes.rows[0]?.id;
+        if (jugadorId) {
+            await dbClient.query(
+                'INSERT INTO jugador_habitats (jugador_id, habitat_id) VALUES ($1, $2)',
+                [jugadorId, nuevoHabitat.id]
+            );
+        }
+
+        await dbClient.query('COMMIT');
+        res.json(nuevoHabitat);
+    } catch (e) { 
+        await dbClient.query('ROLLBACK');
+        res.status(500).json({ error: e.message }); 
+    }
+});
+
+// Renombrar / Editar Hábitat
+app.put('/api/habitats/:id', async (req, res) => {
+    // En tu tabla, el nombre se guarda en la columna 'tipo'
+    const { nombre, imagen_url } = req.body;
+    try {
+        const result = await dbClient.query(
+            'UPDATE habitats SET tipo = COALESCE($1, tipo), imagen_url = COALESCE($2, imagen_url) WHERE id = $3 RETURNING *',
+            [nombre, imagen_url, req.params.id]
+        );
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Eliminar Hábitat
+app.delete('/api/habitats/:id', async (req, res) => {
+    try {
+        // Gracias a tus ON DELETE CASCADE en las tablas 'jugador_habitats',
+        // al borrar el hábitat padre, PostgreSQL limpia todo automáticamente.
+        // Los Pokémon no se borran, solo se rompe el vínculo con el hábitat (vuelven a la caja).
+        await dbClient.query('DELETE FROM habitats WHERE id = $1', [req.params.id]);
+        res.json({ message: 'Hábitat eliminado correctamente.' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==================== GESTIÓN DE ZONAS (ADMIN) ====================
+
+// Crear Zona
+app.post('/api/zonas', async (req, res) => {
+    const { nombre, imagen_url, descripcion, tiposAceptados } = req.body; 
+    
+    if (!tiposAceptados || !Array.isArray(tiposAceptados)) {
+        return res.status(400).json({ error: "Debes especificar al menos un tipo para esta zona." });
+    }
+
+    try {
+        await dbClient.query('BEGIN');
+
+        // 1. Insertar la zona
+        const result = await dbClient.query(
+            'INSERT INTO zonas (nombre, imagen_url, descripcion) VALUES ($1, $2, $3) RETURNING *',
+            [nombre, imagen_url, descripcion || 'Zona de aventura']
+        );
+        const nuevaZona = result.rows[0];
+
+        // 2. Insertar los tipos en la tabla zona_tipos
+        for (const nombreTipo of tiposAceptados) {
+            // Normalizamos el nombre (Ej: "fuego" -> "Fuego")
+            const tipoFormateado = nombreTipo.trim().charAt(0).toUpperCase() + nombreTipo.trim().slice(1).toLowerCase();
+
+            // Buscamos el ID del tipo en la tabla 'tipos'
+            const resTipo = await dbClient.query('SELECT id FROM tipos WHERE nombre = $1', [tipoFormateado]);
+            
+            if (resTipo.rows.length > 0) {
+                const tipoId = resTipo.rows[0].id;
+                await dbClient.query(
+                    'INSERT INTO zona_tipos (zona_id, tipo_id) VALUES ($1, $2)',
+                    [nuevaZona.id, tipoId]
+                );
+            }
+        }
+
+        await dbClient.query('COMMIT');
+        res.json(nuevaZona); // Devolvemos la zona creada para confirmar
+    } catch (e) { 
+        await dbClient.query('ROLLBACK');
+        console.error("❌ Error creando zona:", e);
+        res.status(500).json({ error: e.message }); 
+    }
+});
+
+// Editar Zona
+app.put('/api/zonas/:id', async (req, res) => {
+    const { nombre, imagen_url } = req.body;
+    try {
+        const result = await dbClient.query(
+            'UPDATE zonas SET nombre = COALESCE($1, nombre), imagen_url = COALESCE($2, imagen_url) WHERE id = $3 RETURNING *',
+            [nombre, imagen_url, req.params.id]
+        );
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Eliminar Zona
+app.delete('/api/zonas/:id', async (req, res) => {
+    try {
+        // Tu ON DELETE CASCADE en 'zona_pokemons' se encarga de limpiar los bichos de esa zona
+        await dbClient.query('DELETE FROM zonas WHERE id = $1', [req.params.id]);
+        res.json({ message: 'Zona eliminada' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==================== GESTIÓN DE GRANJAS (Solo Renombrar) ====================
+
+// Renombrar Granja
+app.put('/api/granjas/:id/renombrar', async (req, res) => {
+    const { nombre } = req.body;
+    try {
+        // Usamos la nueva columna 'nombre_personalizado'
+        const result = await dbClient.query(
+            'UPDATE granjas SET nombre_personalizado = $1 WHERE id = $2 RETURNING *',
+            [nombre, req.params.id]
+        );
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.listen(PORT, () => {

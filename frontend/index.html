@@ -385,61 +385,18 @@
         </div>
     </div>
 </section>
- <section id="view-habitats" class="page">
+<section id="view-habitats" class="page">
     <h1>Gestionar Hábitats</h1>
     <p>Visita a tus Pokémon y aliméntalos.</p>
     
-    <div class="habitat-grid">
-        
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatllanura.jpg" class="zone-img">
-            <div class="zone-body">
-                <h3>Pradera (<span id="hab-count-1">0</span>/6)</h3> 
-                <a href="#habitat-detalle" class="nes-btn" onclick="cargarHabitat(1)">Entrar</a>
-            </div>
-        </div>
+    <button class="nes-btn is-success" onclick="crearNuevoHabitat()" style="margin-bottom: 20px;">
+        + Nuevo Hábitat
+    </button>
 
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatbosque.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Bosque (<span id="hab-count-2">0</span>/6)</h3> 
-                <a href="#habitat-detalle" class="nes-btn" onclick="cargarHabitat(2)">Entrar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatagua.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Agua (<span id="hab-count-3">0</span>/6)</h3> 
-                <a href="#habitat-detalle" class="nes-btn" onclick="cargarHabitat(3)">Entrar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatacero.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Acero (<span id="hab-count-4">0</span>/6)</h3> 
-                <a href="#habitat-detalle" class="nes-btn" onclick="cargarHabitat(4)">Entrar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatdesierto.jpeg" class="zone-img">
-            <div class="zone-body">
-                <h3>Desierto (<span id="hab-count-5">0</span>/6)</h3> 
-                <a href="#habitat-detalle" class="nes-btn" onclick="cargarHabitat(5)">Entrar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitathielo.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Hielo (<span id="hab-count-6">0</span>/6)</h3> 
-                <a href="#habitat-detalle" class="nes-btn" onclick="cargarHabitat(6)">Entrar</a>
-            </div>
-        </div>
-
+    <div id="lista-habitats-dinamica" class="habitat-grid">
+        <p>Cargando...</p>
     </div>
+</section>
 </section>
     <section id="view-habitat-detalle" class="page">
         <h2 id="titulo-habitat-detalle">Cargando...</h2>
@@ -518,60 +475,16 @@
         <button class="nes-btn" style="width: 100%; margin-top: 10px;" onclick="cerrarInteraccion()">Volver</button>
     </div>
 </section>
-    <section id="view-capturar" class="page">
+   <section id="view-capturar" class="page">
     <h1>Explorar Zona</h1>
     <p>Elige una zona para buscar Pokémon salvajes.</p>
     
-    <div class="captura-grid">
-        
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturallanura.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Pradera</h3>
-                <a href="#captura-escenario" class="nes-btn is-primary" onclick="cargarEscenario(1)">Buscar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturabosque.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Bosque</h3>
-                <a href="#captura-escenario" class="nes-btn is-success" onclick="cargarEscenario(2)">Buscar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturaplaya.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Playa</h3>
-                <a href="#captura-escenario" class="nes-btn is-primary" onclick="cargarEscenario(3)">Buscar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturacueva.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Cueva</h3>
-                <a href="#captura-escenario" class="nes-btn is-warning" onclick="cargarEscenario(4)">Buscar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturadesierto.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Desierto</h3>
-                <a href="#captura-escenario" class="nes-btn is-warning" onclick="cargarEscenario(5)">Buscar</a>
-            </div>
-        </div>
-
-        <div class="gen-card nes-container is-rounded">
-            <img src="https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/nuevas_zonas_captura/zonacapturahielo.png" class="zone-img">
-            <div class="zone-body">
-                <h3>Nieve</h3>
-                <a href="#captura-escenario" class="nes-btn is-primary" onclick="cargarEscenario(6)">Buscar</a>
-            </div>
-        </div>
-
+    <button class="nes-btn is-primary" onclick="crearNuevaZona()" style="margin-bottom: 20px;">
+        + Nueva Zona
+    </button>
+    
+    <div id="lista-zonas-dinamica" class="captura-grid">
+        <p>Cargando...</p>
     </div>
 </section>
     <section id="view-captura-escenario" class="page">
@@ -1052,23 +965,27 @@ window.addEventListener('hashchange', () => {
     const hash = window.location.hash;
     const viewCombates = document.getElementById('view-combates');
     
+    // Funciones globales de UI
     revisarTutorial(hash);
     actualizarHUDJugador();         
     actualizarContadoresBayas();
 
     // 1. Ocultar combates si salimos de ahí
     if (hash !== '#combates') {
-        viewCombates.style.display = 'none';
+        if(viewCombates) viewCombates.style.display = 'none';
     }
 
     // 2. Cargar la sección correspondiente
     if (hash === '#combates') {
-        viewCombates.style.display = 'block';
+        if(viewCombates) viewCombates.style.display = 'block';
         cargarCombates();
     } 
     else if (hash === '#habitats') {
-        actualizarContadoresHabitat();
+        cargarListaHabitats(); // <--- CAMBIO AQUÍ: Usamos la nueva función dinámica
     } 
+    else if (hash === '#capturar') {
+        cargarListaZonas();    // <--- CAMBIO AQUÍ: Usamos la nueva función dinámica
+    }
     else if (hash === '#granja') {  
         cargarGranja();
     }
@@ -1087,24 +1004,34 @@ window.addEventListener('DOMContentLoaded', async () => {
     actualizarHUDJugador();       
     actualizarContadoresBayas();
 
+    // Cargar efectividades para los combates
     try {
         const res = await fetch(`${API_URL}/tipo-efectividad`);
         if (res.ok) efectividades = await res.json();
     } catch (error) { console.error(error); }
 
     const hash = window.location.hash;
+    const viewCombates = document.getElementById('view-combates');
     
     // Cargar la vista inicial si estamos en una específica
     if (hash === '#combates') {
-        document.getElementById('view-combates').style.display = 'block';
+        if(viewCombates) viewCombates.style.display = 'block';
         cargarCombates();
-    } else if (hash === '#granja') { 
+    } 
+    else if (hash === '#granja') { 
         cargarGranja();
-    } else if (hash === '#habitats') {
-        actualizarContadoresHabitat();
-    }
+    } 
+    else if (hash === '#habitats') {
+        cargarListaHabitats(); // <--- CAMBIO AQUÍ
+    } 
+    else if (hash === '#capturar') {
+        cargarListaZonas();    // <--- CAMBIO AQUÍ
+    } 
     else if (hash === '#caja') {
         cargarCaja();
+    } 
+    else if (hash === '#equipo') {
+        cargarEquipo();
     }
 });
 // ========== CARGAR NIVELES ==========
@@ -2678,6 +2605,218 @@ async function borrarPartida() {
         console.error("Error de conexión al borrar partida:", error);
         alert("Error de conexión con el servidor.");
     }
+}
+
+// --- GESTIÓN DE HÁBITATS ---
+
+async function cargarListaHabitats() {
+    const contenedor = document.getElementById('lista-habitats-dinamica');
+    contenedor.innerHTML = '<p>Cargando...</p>';
+
+    try {
+        // 1. Pedimos la lista de hábitats (definición) y los contadores del jugador
+        const [resDefs, resJug] = await Promise.all([
+            fetch(`${API_URL}/habitats`),        // Todos los hábitats existentes
+            fetch(`${API_URL}/jugador/habitats`) // Cuántos pokes tiene el jugador en cada uno
+        ]);
+
+        const definiciones = await resDefs.json();
+        const contadores = await resJug.json();
+
+        contenedor.innerHTML = '';
+
+        definiciones.forEach(h => {
+            // Buscamos si el jugador tiene pokes aquí
+            const dato = contadores.find(c => c.habitat_id === h.id) || { cantidad_pokemons: 0 };
+            
+            // DIBUJAMOS LA TARJETA USANDO TU DISEÑO EXACTO
+            contenedor.innerHTML += `
+                <div class="gen-card nes-container is-rounded" style="position: relative; padding-top: 30px;">
+                    
+                    <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; z-index: 10;">
+                        <button class="nes-btn is-warning" style="padding: 0 5px; font-size: 0.6rem;" onclick="editarHabitat(${h.id}, '${h.tipo}', '${h.imagen_url}')">✏️</button>
+                        <button class="nes-btn is-error" style="padding: 0 5px; font-size: 0.6rem;" onclick="eliminarHabitat(${h.id})">X</button>
+                    </div>
+
+                    <img src="${h.imagen_url || 'https://via.placeholder.com/150'}" class="zone-img">
+                    
+                    <div class="zone-body">
+                        <h3>${h.tipo} (${dato.cantidad_pokemons}/6)</h3> 
+                        <a href="#habitat-detalle" class="nes-btn" onclick="entrarHabitat(${h.id}, '${h.tipo}', '${h.imagen_url}')">Entrar</a>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (e) { console.error(e); contenedor.innerHTML = 'Error cargando datos.'; }
+}
+
+// Función auxiliar para entrar (Reemplaza la lógica anterior)
+async function entrarHabitat(id, nombre, imagen) {
+    habitatActualId = id;
+    document.getElementById('titulo-habitat-detalle').textContent = nombre;
+    document.getElementById('fondo-habitat-detalle').src = imagen;
+    // Reutilizamos tu función existente para cargar los pokes
+    await cargarHabitat(id); 
+}
+
+// --- ACCIONES DE BOTONES (HABITATS) ---
+
+async function crearNuevoHabitat() {
+    const nombre = prompt("Nombre del Hábitat (ej: Volcán):");
+    if (!nombre) return;
+    
+    const imagen = prompt("URL de la imagen de fondo:");
+    if (!imagen) return;
+
+    const tiposRaw = prompt("Tipos permitidos separados por coma (ej: Fuego, Dragon, Normal):");
+    if (!tiposRaw) return;
+
+    // Convertimos el texto "Agua, Fuego" en un array ["Agua", "Fuego"]
+    const tiposArray = tiposRaw.split(',').map(t => t.trim());
+
+    try {
+        const res = await fetch(`${API_URL}/habitats`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                nombre: nombre, 
+                imagen_url: imagen,
+                tiposAceptados: tiposArray 
+            })
+        });
+
+        if (res.ok) {
+            alert("✅ Hábitat restrictivo creado con éxito.");
+            cargarListaHabitats();
+        } else {
+            const err = await res.json();
+            alert("❌ Error: " + err.error);
+        }
+    } catch (e) { 
+        alert("Error de conexión al crear."); 
+    }
+}
+
+async function editarHabitat(id, nombreActual, imagenActual) {
+    const nombre = prompt("Nuevo nombre:", nombreActual);
+    if (nombre === null) return;
+    const imagen = prompt("Nueva URL imagen:", imagenActual);
+    
+    await fetch(`${API_URL}/habitats/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ nombre, imagen_url: imagen })
+    });
+    cargarListaHabitats();
+}
+
+async function eliminarHabitat(id) {
+    if(!confirm("¿Borrar hábitat? Los Pokémon volverán a la caja.")) return;
+    await fetch(`${API_URL}/habitats/${id}`, { method: 'DELETE' });
+    cargarListaHabitats();
+}
+
+// --- GESTIÓN DE ZONAS ---
+
+async function cargarListaZonas() {
+    const contenedor = document.getElementById('lista-zonas-dinamica');
+    contenedor.innerHTML = '<p>Cargando...</p>';
+
+    try {
+        const res = await fetch(`${API_URL}/zonas`);
+        const zonas = await res.json();
+        
+        contenedor.innerHTML = '';
+        
+        zonas.forEach(z => {
+            contenedor.innerHTML += `
+                <div class="gen-card nes-container is-rounded" style="position: relative; padding-top: 30px;">
+                    
+                    <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; z-index: 10;">
+                        <button class="nes-btn is-warning" style="padding: 0 5px; font-size: 0.6rem;" onclick="editarZona(${z.id}, '${z.nombre}', '${z.imagen_url}')">✏️</button>
+                        <button class="nes-btn is-error" style="padding: 0 5px; font-size: 0.6rem;" onclick="eliminarZona(${z.id})">X</button>
+                    </div>
+
+                    <img src="${z.imagen_url}" class="zone-img">
+                    <div class="zone-body">
+                        <h3>${z.nombre}</h3>
+                        <a href="#captura-escenario" class="nes-btn is-primary" onclick="cargarEscenario(${z.id}, '${z.imagen_url}')">Buscar</a>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (e) { console.error(e); }
+}
+
+// Modificamos ligeramente cargarEscenario para aceptar la imagen como parámetro
+function cargarEscenario(zonaId, imagenUrl) {
+    zonaActualId = zonaId;
+    document.getElementById('img-escenario-fondo').src = imagenUrl;
+    document.getElementById('titulo-zona-captura').textContent = "Explorando...";
+    
+    // Resetear botón de lanzar
+    const btn = document.getElementById('btn-lanzar');
+    btn.disabled = false;
+    btn.innerHTML = '¡Lanzar Ball!';
+    btn.className = "nes-btn is-error"; 
+}
+
+// --- ACCIONES DE BOTONES (ZONAS) ---
+
+async function crearNuevaZona() {
+    const nombre = prompt("Nombre de la Zona (ej: Montaña Rocosa):");
+    if (!nombre) return;
+    
+    const imagen = prompt("URL de la imagen de fondo:");
+    if (!imagen) return;
+
+    const tiposRaw = prompt("Tipos de Pokémon que aparecerán (ej: Roca, Tierra):");
+    if (!tiposRaw) return;
+
+    const tiposArray = tiposRaw.split(',').map(t => t.trim());
+
+    try {
+        const res = await fetch(`${API_URL}/zonas`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                nombre: nombre, 
+                imagen_url: imagen,
+                tiposAceptados: tiposArray 
+            })
+        });
+
+        if (res.ok) {
+            alert("✅ Zona creada con éxito.");
+            // Forzamos la recarga de la lista
+            await cargarListaZonas(); 
+        } else {
+            const err = await res.json();
+            alert("❌ Error: " + err.error);
+        }
+    } catch (e) { 
+        console.error(e);
+        alert("Error de conexión al crear zona."); 
+    }
+}
+
+async function editarZona(id, nombreActual, imagenActual) {
+    const nombre = prompt("Nuevo nombre:", nombreActual);
+    if (!nombre) return;
+    const imagen = prompt("Nueva URL imagen:", imagenActual);
+
+    await fetch(`${API_URL}/zonas/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ nombre, imagen_url: imagen })
+    });
+    cargarListaZonas();
+}
+
+async function eliminarZona(id) {
+    if(!confirm("¿Eliminar zona?")) return;
+    await fetch(`${API_URL}/zonas/${id}`, { method: 'DELETE' });
+    cargarListaZonas();
 }
 </script>
 
