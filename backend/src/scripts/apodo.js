@@ -17,18 +17,15 @@ const dbClient = new Pool({
 
 async function cambiarApodo(jugadorPokemonId, nuevoApodo) {
     try {
-        // 1. Validar que el apodo no esté vacío
         if (!nuevoApodo || nuevoApodo.trim() === '') {
             return { error: 'El apodo no puede estar vacío' };
         }
 
-        // 2. Obtener ID del jugador para verificar 
         const result = await dbClient.query('SELECT jugador_id FROM jugador_pokemons WHERE id = $1', [jugadorPokemonId]);
         if (result.rowCount === 0) return { error: 'Pokémon no encontrado' };
         
         
 
-        // 3. Actualizar el apodo
         await dbClient.query(
             'UPDATE jugador_pokemons SET apodo = $1 WHERE id = $2',
             [nuevoApodo.trim(), jugadorPokemonId]

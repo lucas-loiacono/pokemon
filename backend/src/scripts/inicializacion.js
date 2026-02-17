@@ -15,13 +15,11 @@ const dbClient = new Pool({
   port: 5432,
 });
 
-const FRUTA_ID = 1; // Bayas verdes
+const FRUTA_ID = 1; 
 
-// ==================== INICIALIZAR JUEGO ====================
 
 async function inicializarJuego(pokemon_starter_id) {
   try {
-    // 1. Verificar si ya existe un jugador
     const jugadorExistente = await dbClient.query(`
       SELECT id FROM jugadores LIMIT 1
     `);
@@ -33,7 +31,6 @@ async function inicializarJuego(pokemon_starter_id) {
       };
     }
 
-    // 2. Verificar que el Pokémon starter existe
     const pokemonCheck = await dbClient.query(`
       SELECT id, nombre FROM pokemons WHERE id = $1
     `, [pokemon_starter_id]);
@@ -44,7 +41,6 @@ async function inicializarJuego(pokemon_starter_id) {
 
     const starterNombre = pokemonCheck.rows[0].nombre;
 
-    // 3. Crear jugador (nivel 1, 0 XP)
     const jugador = await dbClient.query(`
       INSERT INTO jugadores (nivel, xp)
       VALUES (1, 0)
@@ -53,7 +49,6 @@ async function inicializarJuego(pokemon_starter_id) {
 
     const jugador_id = jugador.rows[0].id;
 
-    // 4. Dar Pokémon starter (nivel 1, 0 XP, etapa 1)
     const pokemonStarter = await dbClient.query(`
       INSERT INTO jugador_pokemons (jugador_id, pokemon_id, nivel, xp, etapa_evolucion)
       VALUES ($1, $2, 1, 0, 1)
@@ -62,13 +57,11 @@ async function inicializarJuego(pokemon_starter_id) {
 
     const jugador_pokemon_id = pokemonStarter.rows[0].id;
 
-    // 5. Agregar el starter al equipo en posición 1
     await dbClient.query(`
       INSERT INTO equipo_combate (jugador_id, jugador_pokemon_id, posicion)
       VALUES ($1, $2, 1)
     `, [jugador_id, jugador_pokemon_id]);
 
-    // 6. Crear los 6 hábitats del jugador
     const habitatsCreados = [];
     const habitats = await dbClient.query(`SELECT id, tipo FROM habitats ORDER BY id`);
 
@@ -85,7 +78,6 @@ async function inicializarJuego(pokemon_starter_id) {
       });
     }
 
-    // 7. Crear las 6 granjas (todas listas para recolectar)
     const granjasCreadas = [];
     for (let i = 0; i < 6; i++) {
       const result = await dbClient.query(`
@@ -97,7 +89,6 @@ async function inicializarJuego(pokemon_starter_id) {
       granjasCreadas.push(result.rows[0].id);
     }
 
-    // 8. Dar 10 frutas iniciales
     await dbClient.query(`
       INSERT INTO jugador_frutas (jugador_id, fruta_id, cantidad)
       VALUES ($1, $2, 10)
@@ -128,11 +119,9 @@ async function inicializarJuego(pokemon_starter_id) {
   }
 }
 
-// ==================== REINICIAR JUEGO (BORRAR TODO) ====================
 
 async function reiniciarJuego() {
   try {
-    // CUIDADO: Esto borra TODOS los datos del jugador
     await dbClient.query(`DELETE FROM jugadores`);
 
     return {
@@ -145,11 +134,8 @@ async function reiniciarJuego() {
   }
 }
 
-// ==================== OBTENER POKÉMON STARTERS DISPONIBLES ====================
 
 async function getStartersDisponibles() {
-  // Puedes personalizar esta lista según los Pokémon que tengas
-  // Por ahora, devolvemos los clásicos: Bulbasaur, Charmander, Squirtle
   const starters = await dbClient.query(`
     SELECT 
       p.id,

@@ -35,6 +35,11 @@ run-backend:
 	@echo "Iniciando servidor backend..."
 	cd ./backend && npm run dev
 
+run-frontend:
+	@echo "Iniciando servidor frontend..."
+	xdg-open http://localhost:8080 &
+	cd ./frontend && npx serve -p 8080
+	
 start-db: 
 	@echo "Iniciando base de datos..."
 	cd ./backend && docker compose up -d

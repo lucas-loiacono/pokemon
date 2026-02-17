@@ -25,7 +25,6 @@ async function getJugadorId() {
   return result.rows[0]?.id || null;
 }
 
-// ==================== ALIMENTAR POKÉMON ====================
 
 async function alimentarPokemon(jugador_pokemon_id) {
   const jugadorId = await getJugadorId();
@@ -34,7 +33,6 @@ async function alimentarPokemon(jugador_pokemon_id) {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Verificar que el Pokémon existe y pertenece al jugador
   const pokemonCheck = await dbClient.query(`
     SELECT 
       jp.id,
@@ -53,7 +51,6 @@ async function alimentarPokemon(jugador_pokemon_id) {
 
   const { nivel, xp, pokemon_nombre, apodo } = pokemonCheck.rows[0];
 
-  // 2. Verificar que el jugador tiene frutas
   const frutaCheck = await dbClient.query(`
     SELECT cantidad
     FROM jugador_frutas
@@ -69,7 +66,6 @@ async function alimentarPokemon(jugador_pokemon_id) {
 
   const cantidad_disponible = frutaCheck.rows[0].cantidad;
 
-  // 3. Verificar que no está en nivel máximo (30)
   if (nivel >= 30) {
     return {
       error: 'Pokemon at max level',
@@ -77,14 +73,12 @@ async function alimentarPokemon(jugador_pokemon_id) {
     };
   }
 
-  // 4. Descontar 1 fruta del inventario
   await dbClient.query(`
     UPDATE jugador_frutas
     SET cantidad = cantidad - 1
     WHERE jugador_id = $1 AND fruta_id = $2
   `, [jugadorId, FRUTA_ID]);
 
-  // 5. Dar 20 XP al Pokémon
   const result = await dbClient.query(`
     UPDATE jugador_pokemons
     SET xp = xp + $1
@@ -94,7 +88,6 @@ async function alimentarPokemon(jugador_pokemon_id) {
 
   const nuevaXp = result.rows[0].xp;
 
-  // 6. Verificar subida de nivel automáticamente
   const resultadoNivel = await verificarSubidaNivelPokemon(jugador_pokemon_id);
 
   return {

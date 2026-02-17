@@ -23,7 +23,6 @@ async function getJugadorId() {
   return result.rows[0]?.id || null;
 }
 
-// ==================== VERIFICAR SI PUEDE EVOLUCIONAR ====================
 
 async function puedeEvolucionar(jugador_pokemon_id) {
   const jugadorId = await getJugadorId();
@@ -32,7 +31,6 @@ async function puedeEvolucionar(jugador_pokemon_id) {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Obtener Pokémon del jugador
   const pokemon = await dbClient.query(`
     SELECT 
       jp.id,
@@ -52,7 +50,6 @@ async function puedeEvolucionar(jugador_pokemon_id) {
 
   const { pokemon_id, nivel, etapa_evolucion, pokemon_nombre, pokemon_imagen } = pokemon.rows[0];
 
-  // 2. Verificar si tiene evolución disponible
   const evolucion = await dbClient.query(`
     SELECT 
       e.nivel_requerido,
@@ -77,7 +74,6 @@ async function puedeEvolucionar(jugador_pokemon_id) {
 
   const { nivel_requerido, pokemon_id_siguiente, etapa_siguiente, evolucion_nombre, evolucion_imagen, evolucion_pokedex_id } = evolucion.rows[0];
 
-  // 3. Verificar si cumple el nivel requerido
   if (nivel < nivel_requerido) {
     return {
       puede_evolucionar: false,
@@ -104,7 +100,6 @@ async function puedeEvolucionar(jugador_pokemon_id) {
   };
 }
 
-// ==================== EVOLUCIONAR POKÉMON ====================
 
 async function evolucionarPokemon(jugador_pokemon_id) {
   const jugadorId = await getJugadorId();
@@ -113,7 +108,6 @@ async function evolucionarPokemon(jugador_pokemon_id) {
     return { error: 'Jugador not found' };
   }
 
-  // 1. Verificar si puede evolucionar
   const verificacion = await puedeEvolucionar(jugador_pokemon_id);
 
   if (verificacion.error || !verificacion.puede_evolucionar) {
@@ -122,7 +116,6 @@ async function evolucionarPokemon(jugador_pokemon_id) {
 
   const { pokemon_id_siguiente, etapa_siguiente, pokemon_actual, evolucion_nombre } = verificacion;
 
-  // 2. Evolucionar el Pokémon (mantener nivel y XP)
   await dbClient.query(`
     UPDATE jugador_pokemons
     SET 
@@ -131,14 +124,12 @@ async function evolucionarPokemon(jugador_pokemon_id) {
     WHERE id = $3
   `, [pokemon_id_siguiente, etapa_siguiente, jugador_pokemon_id]);
 
-  // 3. Dar 50 XP al jugador
   await dbClient.query(`
     UPDATE jugadores
     SET xp = xp + $1
     WHERE id = $2
   `, [XP_POR_EVOLUCION, jugadorId]);
 
-  // 4. Obtener info actualizada del Pokémon
   const pokemonEvolucionado = await dbClient.query(`
     SELECT 
       jp.id,
