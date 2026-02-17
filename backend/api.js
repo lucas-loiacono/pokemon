@@ -78,7 +78,11 @@ const {
 const {
   getAllEntrenadores,
   getOneEntrenador,
-  iniciarCombate
+  iniciarCombate,
+  createEntrenador,
+  deleteEntrenador,
+  updateEntrenador,
+  setEntrenadorTeam
 } = require('./src/scripts/combate');
 
 const {
@@ -744,6 +748,35 @@ app.put('/api/granjas/:id/renombrar', async (req, res) => {
         );
         res.json(result.rows[0]);
     } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/entrenadores', async (req, res) => {
+    const { nombre, nivel, imagen_url } = req.body;
+    const result = await createEntrenador(nombre, nivel, imagen_url);
+    if(result.error) return res.status(500).json(result);
+    res.json(result);
+});
+
+app.put('/api/entrenadores/:id', async (req, res) => {
+    const { nombre, nivel, imagen_url } = req.body;
+    const result = await updateEntrenador(req.params.id, nombre, imagen_url, nivel);
+    if(result.error) return res.status(500).json(result);
+    res.json(result);
+});
+
+app.delete('/api/entrenadores/:id', async (req, res) => {
+    const result = await deleteEntrenador(req.params.id);
+    if(result.error) return res.status(500).json(result);
+    res.json(result);
+});
+
+app.post('/api/entrenadores/:id/equipo', async (req, res) => {
+    const { team } = req.body;
+    if(!team || !Array.isArray(team)) return res.status(400).json({error: "Formato de equipo inválido"});
+    
+    const result = await setEntrenadorTeam(req.params.id, team);
+    if(result.error) return res.status(500).json(result);
+    res.json(result);
 });
 
 app.listen(PORT, () => {

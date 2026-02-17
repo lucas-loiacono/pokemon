@@ -561,6 +561,11 @@
 <section id="view-combates" class="page" style="display: none;">
     <h1>⚔️ Combates</h1>
     
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="nes-btn is-primary" onclick="abrirGestionRivales()">
+            🛠️ Crear/Editar Rivales
+        </button>
+    </div>
     <div id="lista-niveles" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px; margin: 0 auto;">
     </div>
 </section>
@@ -618,7 +623,6 @@
             </div>
         </div>
         
-        <!-- Botones de acción -->
         <div style="text-align: center; margin-top: 40px; display: flex; gap: 20px; justify-content: center;">
             <button class="nes-btn is-error" onclick="volverADetalleNivel()" style="padding: 15px 30px; font-size: 0.8rem;">
                 ← Cancelar
@@ -748,6 +752,51 @@
     ❓
 </button>
 
+
+<section id="modal-gestion-rivales" class="combat-modal" style="z-index: 9990;">
+    <div class="nes-container is-rounded is-white" style="max-width: 800px; margin: 20px auto; background: white; height: 90vh; display: flex; flex-direction: column;">
+        
+        <div style="flex: 0 0 auto; margin-bottom: 20px; text-align: center;">
+            <h2 style="margin-bottom: 10px;">Mis Rivales</h2>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="nes-btn is-success" onclick="abrirModalEditorCompleto()">+ Crear Nuevo</button>
+                <button class="nes-btn" onclick="document.getElementById('modal-gestion-rivales').style.display='none'; cargarCombates();">Cerrar</button>
+            </div>
+        </div>
+
+        <div id="lista-gestion-entrenadores" style="flex: 1; overflow-y: auto; padding-right: 10px; display: grid; gap: 15px;">
+            </div>
+    </div>
+</section>
+
+<section id="modal-editor-completo" class="combat-modal" style="display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.9); z-index: 9995;">
+    <div class="nes-container is-rounded is-white" style="background:white; max-width:600px; width:95%; height: 90vh; display: flex; flex-direction: column;">
+        <h3 id="titulo-editor-completo" style="text-align:center;">Crear Rival</h3>
+        
+        <div style="flex: 1; overflow-y: auto; padding: 10px;">
+            
+            <div style="background: #f0f0f0; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+                <label>Nombre del Rival:</label>
+                <input type="text" id="edit-nombre" class="nes-input" placeholder="Ej: Team Rocket Grunt">
+                
+                <label style="margin-top: 10px;">URL Imagen:</label>
+                <input type="text" id="edit-img" class="nes-input" placeholder="https://...">
+            </div>
+
+            <h4 style="font-size: 0.9rem; margin-bottom: 10px;">Equipo Pokémon (Orden 1-5)</h4>
+            <p style="font-size: 0.6rem; color: #666; margin-bottom: 15px;">Ingresa el ID de la Pokédex (ej: 25 para Pikachu) y el Nivel (Max 30).</p>
+
+            <div id="lista-slots-inputs" style="display: flex; flex-direction: column; gap: 10px;">
+                </div>
+
+        </div>
+
+        <div style="margin-top: 15px; text-align: center; flex: 0 0 auto;">
+            <button class="nes-btn is-error" onclick="document.getElementById('modal-editor-completo').style.display='none'">Cancelar</button>
+            <button class="nes-btn is-primary" onclick="guardarEntrenadorCompleto()">💾 GUARDAR TODO</button>
+        </div>
+    </div>
+</section>
 <script>
 
 //const API_URL = 'https://pokemon-rancher-2c7u.onrender.com/api';
@@ -1001,43 +1050,87 @@ async function cargarCombates() {
     
     try {
         const res = await fetch(`${API_URL}/entrenadores`);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
+        const entrenadores = await res.json();
+        
+        
+        const historia = entrenadores.filter(e => e.descripcion !== 'Entrenador Personalizado');
+        const personalizados = entrenadores.filter(e => e.descripcion === 'Entrenador Personalizado');
+
+        let html = '';
+
+        
+        html += `<h3 style="grid-column: 1/-1; margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 5px;">📜 Modo Historia</h3>`;
+        
+        if (historia.length > 0) {
+            html += historia.map(e => generarBotonNivel(e)).join('');
+        } else {
+            html += `<p style="grid-column: 1/-1;">No hay niveles de historia cargados.</p>`;
+        }
+
+        
+        html += `<h3 style="grid-column: 1/-1; margin-top: 30px; border-bottom: 2px solid #333; padding-bottom: 5px; color: var(--azul-poke);">🛠️ Rivales Personalizados</h3>`;
+        
+        if (personalizados.length > 0) {
+            html += personalizados.map(e => generarBotonNivel(e, true)).join('');
+        } else {
+            html += `<div style="grid-column: 1/-1; text-align: center; color: #666; font-size: 0.7rem;">
+                        <p>No has creado rivales aún.</p>
+                        <p>Usa el botón "Gestionar Rivales" para crear uno.</p>
+                     </div>`;
         }
         
-        entrenadores = await res.json();
-        console.log('✅ Entrenadores cargados:', entrenadores);
-        
-        const html = entrenadores.map(e => {
-            const bloqueado = !e.desbloqueado;
-            const derrotado = parseInt(e.victorias) > 0;
-            
-            return `
-                <button 
-                    class="nes-btn ${bloqueado ? 'is-disabled' : (derrotado ? 'is-success' : '')}" 
-                    ${bloqueado ? 'disabled' : ''}
-                    onclick="verNivel(${e.id})"
-                    style="padding: 20px; font-size: 0.8rem; position: relative;">
-                    ${bloqueado ? '🔒 ' : ''}Nivel ${e.nivel}
-                    ${derrotado ? '<br><span style="font-size: 0.6rem;">✓ Completado</span>' : ''}
-                </button>
-            `;
-        }).join('');
-        
         document.getElementById('lista-niveles').innerHTML = html;
-        console.log('✅ HTML renderizado');
         
     } catch (error) {
         console.error('❌ Error:', error);
-        document.getElementById('lista-niveles').innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center;" class="nes-text is-error">
-                <p>Error al cargar entrenadores</p>
-                <p style="font-size: 0.6rem;">${error.message}</p>
-                <p style="font-size: 0.6rem;">¿Backend corriendo en ${API_URL}?</p>
-            </div>
-        `;
+        document.getElementById('lista-niveles').innerHTML = `<p>Error cargando combates.</p>`;
     }
+}
+
+
+function generarBotonNivel(e, esPersonalizado = false) {
+   
+    const bloqueado = esPersonalizado ? false : !e.desbloqueado;
+    const derrotado = parseInt(e.victorias) > 0;
+    
+    
+    const estiloBorde = esPersonalizado ? 'border: 4px solid var(--azul-poke);' : '';
+    const claseBtn = esPersonalizado ? 'is-primary' : (derrotado ? 'is-success' : '');
+    
+    const colorSubtitulo = bloqueado ? '#888' : (esPersonalizado ? '#e0e0e0' : '#555');
+
+    let textoPrincipal = '';
+    let textoSubtitulo = '';
+
+    if (esPersonalizado) {
+        textoPrincipal = e.nombre;
+        textoSubtitulo = `Nvl promedio: ${e.nivel}`;
+    } else {
+        textoPrincipal = `Nivel ${e.nivel}`;
+        textoSubtitulo = e.nombre;
+    }
+    
+
+    return `
+        <button 
+            class="nes-btn ${bloqueado ? 'is-disabled' : claseBtn}" 
+            ${bloqueado ? 'disabled' : ''}
+            onclick="verNivel(${e.id})"
+            style="padding: 15px; position: relative; ${estiloBorde}; min-height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;">
+            
+            <span style="font-size: 0.9rem; font-weight: bold;">
+                ${bloqueado ? '🔒 ' : ''}${textoPrincipal}
+            </span>
+
+            ${derrotado ? '<span style="font-size: 0.6rem; color: #ffeb3b;">✓ Vencido</span>' : ''}
+            
+            <span style="font-size: 0.6rem; color: ${colorSubtitulo}; text-transform: capitalize;">
+                ${textoSubtitulo}
+            </span>
+        </button>
+    `;
 }
 
 async function verNivel(id) {
@@ -1820,7 +1913,7 @@ async function cargarGranja() {
             let estiloContenedor = 'background: white;'; 
 
             if (!g.desbloqueada) {
-                // --- BLOQUEADO ---
+                
                 const nivelReq = nivelesDesbloqueo[numero] || 30;
                 estiloContenedor = 'background: #e0e0e0; color: #777;'; 
 
@@ -2603,6 +2696,218 @@ async function eliminarZona(id) {
     if(!confirm("¿Eliminar zona?")) return;
     await fetch(`${API_URL}/zonas/${id}`, { method: 'DELETE' });
     cargarListaZonas();
+}
+
+
+let todosLosPokedex = []; 
+let entrenadorEditandoId = null;
+
+
+async function abrirGestionRivales() {
+    document.getElementById('modal-gestion-rivales').style.display = 'block';
+    const contenedor = document.getElementById('lista-gestion-entrenadores');
+    contenedor.innerHTML = '<p style="text-align:center;">Cargando...</p>';
+
+    try {
+        const [resEnt, resPoke] = await Promise.all([
+            fetch(`${API_URL}/entrenadores`),
+            fetch(`${API_URL}/pokemons`)
+        ]);
+        
+        const todos = await resEnt.json();
+        todosLosPokedex = await resPoke.json(); 
+        
+        const misRivales = todos.filter(e => e.descripcion === 'Entrenador Personalizado');
+
+        if(misRivales.length === 0) {
+            contenedor.innerHTML = '<p style="text-align:center;">No has creado rivales aún.</p>';
+            return;
+        }
+
+        contenedor.innerHTML = misRivales.map(e => `
+            <div class="nes-container is-rounded with-title" style="background: white; padding: 10px;">
+                <p class="title">Rival Personalizado (Nvl ${e.nivel})</p>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="${e.imagen_url}" style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #333;" onerror="this.src='https://via.placeholder.com/60'">
+                    <div style="flex: 1;">
+                        <strong style="font-size: 0.9rem;">${e.nombre}</strong><br>
+                        <span style="font-size: 0.7rem; color: #666;">Haz click en Editar para ver su equipo.</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <button class="nes-btn is-primary" style="padding: 5px 10px; font-size: 0.7rem;" onclick="cargarDatosYEditar(${e.id})">✏️ Editar</button>
+                        <button class="nes-btn is-error" style="padding: 5px 10px; font-size: 0.7rem;" onclick="borrarEntrenador(${e.id})">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (e) {
+        console.error(e);
+        contenedor.innerHTML = '<p>Error de conexión.</p>';
+    }
+}
+
+
+async function abrirModalEditorCompleto() {
+    entrenadorEditandoId = null; 
+    document.getElementById('titulo-editor-completo').textContent = "Crear Nuevo Rival";
+    
+    
+    document.getElementById('edit-nombre').value = "";
+    document.getElementById('edit-img').value = "";
+    
+    generarInputsEquipo([]); 
+    
+    document.getElementById('modal-editor-completo').style.display = 'flex';
+}
+
+async function cargarDatosYEditar(id) {
+    entrenadorEditandoId = id; 
+    document.getElementById('titulo-editor-completo').textContent = "Editar Rival";
+    
+    try {
+        const res = await fetch(`${API_URL}/entrenadores/${id}`);
+        const data = await res.json();
+        
+        document.getElementById('edit-nombre').value = data.nombre;
+        document.getElementById('edit-img').value = data.imagen_url;
+        
+        generarInputsEquipo(data.pokemons || []);
+        
+        document.getElementById('modal-editor-completo').style.display = 'flex';
+    } catch (e) { console.error(e); }
+}
+
+
+function generarInputsEquipo(equipoExistente) {
+    const contenedor = document.getElementById('lista-slots-inputs');
+    contenedor.innerHTML = '';
+    
+    for (let i = 1; i <= 5; i++) {
+        
+        const poke = equipoExistente.find(p => p.posicion === i);
+        let valId = '';
+        if (poke) {
+            valId = poke.pokedex_id || ''; 
+        }
+
+        const valNivel = poke ? poke.nivel : 1;
+
+        const div = document.createElement('div');
+        div.style.cssText = "display: flex; gap: 10px; align-items: center; background: #fafafa; padding: 5px; border: 1px solid #ddd;";
+        
+        div.innerHTML = `
+            <span style="font-weight:bold; width: 20px;">#${i}</span>
+            
+            <div style="flex: 1;">
+                <label style="font-size: 0.6rem;">ID Pokédex</label>
+                <input type="number" id="slot-id-${i}" class="nes-input" placeholder="Ej: 1, 4, 7..." value="${valId}" min="1">
+            </div>
+
+            <div style="width: 80px;">
+                <label style="font-size: 0.6rem;">Nivel (Max 30)</label>
+                <input type="number" id="slot-lvl-${i}" class="nes-input" value="${valNivel}" min="1" max="30">
+            </div>
+        `;
+        contenedor.appendChild(div);
+    }
+}
+
+
+async function guardarEntrenadorCompleto() {
+    const nombre = document.getElementById('edit-nombre').value;
+    const img = document.getElementById('edit-img').value || 'https://via.placeholder.com/150';
+    
+    if (!nombre) return alert("¡El nombre es obligatorio!");
+
+    const nuevoEquipo = [];
+    let sumaNiveles = 0;
+    let contadorPokemons = 0;
+
+    for (let i = 1; i <= 5; i++) {
+        const inputId = document.getElementById(`slot-id-${i}`).value;
+        const inputLvl = document.getElementById(`slot-lvl-${i}`).value;
+
+        if (inputId) { 
+            const pokedexId = parseInt(inputId);
+            let nivel = parseInt(inputLvl);
+
+            if (nivel > 30) {
+                alert(`⚠️ El nivel en la posición #${i} es ${nivel}. El máximo es 30.`);
+                return; 
+            }
+            if (nivel < 1 || isNaN(nivel)) nivel = 1;
+
+            const pokemonReal = todosLosPokedex.find(p => p.pokedex_id === pokedexId);
+            
+            if (!pokemonReal) {
+                alert(`⚠️ No existe ningún Pokémon con ID de Pokédex: ${pokedexId} (Posición #${i})`);
+                return;
+            }
+
+            nuevoEquipo.push({
+                pokemon_id: pokemonReal.id, 
+                nivel: nivel,
+                posicion: i
+            });
+
+            sumaNiveles += nivel;
+            contadorPokemons++;
+        }
+    }
+
+    if (nuevoEquipo.length === 0) return alert("Debes agregar al menos 1 Pokémon al equipo.");
+   
+    const nivelPromedio = Math.ceil(sumaNiveles / contadorPokemons);
+
+    const bodyEntrenador = JSON.stringify({ 
+        nombre, 
+        nivel: nivelPromedio, 
+        imagen_url: img 
+    });
+
+    const method = entrenadorEditandoId ? 'PUT' : 'POST';
+    const url = entrenadorEditandoId ? `${API_URL}/entrenadores/${entrenadorEditandoId}` : `${API_URL}/entrenadores`;
+
+    try {
+        const res1 = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: bodyEntrenador
+        });
+        const dataEntrenador = await res1.json();
+
+        if (!res1.ok) throw new Error(dataEntrenador.error || "Error guardando entrenador");
+
+        const idFinal = entrenadorEditandoId || dataEntrenador.id;
+
+        
+        const res2 = await fetch(`${API_URL}/entrenadores/${idFinal}/equipo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ team: nuevoEquipo })
+        });
+
+        if (res2.ok) {
+            alert("✅ ¡Rival guardado correctamente!");
+            document.getElementById('modal-editor-completo').style.display = 'none';
+            abrirGestionRivales(); 
+        } else {
+            alert("Error al guardar el equipo.");
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert("Error: " + e.message);
+    }
+}
+
+async function borrarEntrenador(id) {
+    if (!confirm("¿Eliminar este rival para siempre?")) return;
+    try {
+        await fetch(`${API_URL}/entrenadores/${id}`, { method: 'DELETE' });
+        abrirGestionRivales(); 
+    } catch (e) { console.error(e); }
 }
 </script>
 
