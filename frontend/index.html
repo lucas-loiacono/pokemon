@@ -623,6 +623,7 @@
             </div>
         </div>
         
+        
         <div style="text-align: center; margin-top: 40px; display: flex; gap: 20px; justify-content: center;">
             <button class="nes-btn is-error" onclick="volverADetalleNivel()" style="padding: 15px 30px; font-size: 0.8rem;">
                 ← Cancelar
@@ -752,7 +753,6 @@
     ❓
 </button>
 
-
 <section id="modal-gestion-rivales" class="combat-modal" style="z-index: 9990;">
     <div class="nes-container is-rounded is-white" style="max-width: 800px; margin: 20px auto; background: white; height: 90vh; display: flex; flex-direction: column;">
         
@@ -797,6 +797,7 @@
         </div>
     </div>
 </section>
+
 <script>
 
 //const API_URL = 'https://pokemon-rancher-2c7u.onrender.com/api';
@@ -1073,12 +1074,14 @@ async function cargarCombates() {
         html += `<h3 style="grid-column: 1/-1; margin-top: 30px; border-bottom: 2px solid #333; padding-bottom: 5px; color: var(--azul-poke);">🛠️ Rivales Personalizados</h3>`;
         
         if (personalizados.length > 0) {
+            
             html += personalizados.map(e => generarBotonNivel(e, true)).join('');
         } else {
-            html += `<div style="grid-column: 1/-1; text-align: center; color: #666; font-size: 0.7rem;">
-                        <p>No has creado rivales aún.</p>
-                        <p>Usa el botón "Gestionar Rivales" para crear uno.</p>
-                     </div>`;
+            html += `
+                <div style="grid-column: 1/-1; text-align: center; color: #666; font-size: 0.8rem; padding: 20px; background: #f0f0f0; border-radius: 10px;">
+                    <p>No tienes rivales propios.</p>
+                    <p>¡Crea uno con el botón de arriba para probar tus equipos!</p>
+                </div>`;
         }
         
         document.getElementById('lista-niveles').innerHTML = html;
@@ -1091,7 +1094,7 @@ async function cargarCombates() {
 
 
 function generarBotonNivel(e, esPersonalizado = false) {
-   
+    
     const bloqueado = esPersonalizado ? false : !e.desbloqueado;
     const derrotado = parseInt(e.victorias) > 0;
     
@@ -1101,13 +1104,16 @@ function generarBotonNivel(e, esPersonalizado = false) {
     
     const colorSubtitulo = bloqueado ? '#888' : (esPersonalizado ? '#e0e0e0' : '#555');
 
+    
     let textoPrincipal = '';
     let textoSubtitulo = '';
 
     if (esPersonalizado) {
+        
         textoPrincipal = e.nombre;
         textoSubtitulo = `Nvl promedio: ${e.nivel}`;
     } else {
+        
         textoPrincipal = `Nivel ${e.nivel}`;
         textoSubtitulo = e.nombre;
     }
@@ -1198,18 +1204,15 @@ async function verPrediccion() {
     
     try {
         if (!efectividades || efectividades.length === 0) {
-            console.log('⚠️ Cargando efectividades...');
             const resEfectividad = await fetch(`${API_URL}/tipo-efectividad`);
             efectividades = await resEfectividad.json();
-            console.log('✅ Efectividades cargadas:', efectividades.length);
         }
         
         const equipoRes = await fetch(`${API_URL}/jugador/equipo`);
         equipoJugador = await equipoRes.json();
-        console.log('👥 Equipo jugador:', equipoJugador);
         
         if (equipoJugador.error || equipoJugador.length === 0) {
-            alert('❌ No tenés Pokémon en tu equipo. Agregá al menos uno antes de combatir.');
+            alert('❌ No tenés Pokémon en tu equipo.');
             return;
         }
         
@@ -1243,85 +1246,100 @@ async function verPrediccion() {
         document.getElementById('equipo-jugador-prediccion').innerHTML = jugadorHTML;
         document.getElementById('equipo-rival-prediccion').innerHTML = rivalHTML;
         
-        const totalCombates = Math.min(equipoJugador.length, entrenadorSeleccionado.pokemons.length, 5);
-        const predicciones = [];
+        const totalCombates = 5; 
+       const predicciones = [];
+        let victoriasPredichasJugador = 0;
+        let victoriasPredichasRival = 0;
 
-        for (let i = 0; i < totalCombates; i++) {
-            const pokemonJugador = equipoJugador[i];
-            const pokemonRival = entrenadorSeleccionado.pokemons[i];
+        
+        for (let i = 0; i < 5; i++) {
+            const pJugador = equipoJugador.find(p => p.posicion === (i + 1));
+            const pRival = entrenadorSeleccionado.pokemons.find(p => p.posicion === (i + 1));
 
-            const multiplicadorJugador = calcularMultiplicadorCliente(
-                pokemonJugador.tipos,
-                pokemonRival.tipos,
-                efectividades
-            );
-
-            const multiplicadorRival = calcularMultiplicadorCliente(
-                pokemonRival.tipos,
-                pokemonJugador.tipos,
-                efectividades
-            );
-
-            const poderJugador = pokemonJugador.nivel * multiplicadorJugador;
-            const poderRival = pokemonRival.nivel * multiplicadorRival;
             
-            const ganadorPredicho = poderJugador > poderRival ? 'jugador' : 'rival';
+            if (!pJugador && !pRival) continue;
+
             
+            if (!pJugador && pRival) {
+                victoriasPredichasRival++;
+                predicciones.push({
+                    pokemonJugador: "Vacío",
+                    pokemonRival: pRival.nombre,
+                    ganador: 'rival',
+                    poderJugador: "0.00",
+                    poderRival: "N/A",
+                    multiplicadorJugador: "0.00"
+                });
+                continue;
+            }
+
+            
+            if (pJugador && !pRival) {
+                victoriasPredichasJugador++;
+                predicciones.push({
+                    pokemonJugador: pJugador.apodo || pJugador.nombre,
+                    pokemonRival: "Vacío",
+                    ganador: 'jugador',
+                    poderJugador: "N/A",
+                    poderRival: "0.00",
+                    multiplicadorJugador: "0.00"
+                });
+                continue;
+            }
+
+            
+            const multJ = calcularMultiplicadorCliente(pJugador.tipos, pRival.tipos, efectividades);
+            const multR = calcularMultiplicadorCliente(pRival.tipos, pJugador.tipos, efectividades);
+            const poderJ = pJugador.nivel * multJ;
+            const poderR = pRival.nivel * multR;
+            
+            const ganador = poderJ >= poderR ? 'jugador' : 'rival';
+            if (ganador === 'jugador') victoriasPredichasJugador++;
+            else victoriasPredichasRival++;
+
             predicciones.push({
-                numero: i + 1,
-                pokemonJugador: pokemonJugador.apodo || pokemonJugador.nombre,
-                pokemonRival: pokemonRival.nombre,
-                poderJugador: poderJugador.toFixed(2),
-                poderRival: poderRival.toFixed(2),
-                multiplicadorJugador: multiplicadorJugador.toFixed(2),
-                multiplicadorRival: multiplicadorRival.toFixed(2),
-                ganador: ganadorPredicho
+                pokemonJugador: pJugador.apodo || pJugador.nombre,
+                pokemonRival: pRival.nombre,
+                poderJugador: poderJ.toFixed(2),
+                poderRival: poderR.toFixed(2),
+                multiplicadorJugador: multJ.toFixed(2),
+                ganador: ganador
             });
         }
 
-        let victoriasPredichasJugador = 0;
-        let victoriasPredichasRival = 0;
         
-        predicciones.forEach(p => {
-            if (p.ganador === 'jugador') {
-                victoriasPredichasJugador++;
-            } else {
-                victoriasPredichasRival++;
-            }
-        });
+        const ganarasLaBatalla = victoriasPredichasJugador > victoriasPredichasRival;
         
-        const ganarasLaBatalla = victoriasPredichasJugador >= 3;
-        const mensajeResultado = `${victoriasPredichasJugador} vs ${victoriasPredichasRival}`;
-        
-        console.log('\n🏆 PREDICCIÓN:');
-        console.log('   Victorias Jugador:', victoriasPredichasJugador);
-        console.log('   Victorias Rival:', victoriasPredichasRival);
-        console.log('   Resultado predicho:', ganarasLaBatalla ? 'VICTORIA' : 'DERROTA\n');
         
         const prediccionesHTML = predicciones.map(p => `
-            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; padding: 8px; border: 2px solid ${p.ganador === 'jugador' ? '#27ae60' : '#e74c3c'}; border-radius: 5px; background: ${p.ganador === 'jugador' ? '#e8f5e9' : '#ffebee'};">
+            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; padding: 8px; border: 2px solid ${p.ganador === 'jugador' ? '#27ae60' : '#e74c3c'}; border-radius: 5px; background: ${p.ganador === 'jugador' ? '#e8f5e9' : '#ffebee'}; margin-bottom:5px;">
                 <div style="text-align: left; font-size: 0.6rem;">
                     <div style="font-weight: bold;">${p.pokemonJugador}</div>
-                    <div style="color: #666;">Poder: ${p.poderJugador} (×${p.multiplicadorJugador})</div>
+                    <div style="color: #666;">Poder: ${p.poderJugador}</div>
                 </div>
-                <div style="font-size: 0.7rem; font-weight: bold;">
-                    ${p.ganador === 'jugador' ? '✅' : '❌'}
-                </div>
+                <div style="font-size: 0.7rem;">${p.ganador === 'jugador' ? '✅' : '❌'}</div>
                 <div style="text-align: right; font-size: 0.6rem;">
                     <div style="font-weight: bold;">${p.pokemonRival}</div>
-                    <div style="color: #666;">Poder: ${p.poderRival} (×${p.multiplicadorRival})</div>
+                    <div style="color: #666;">Poder: ${p.poderRival}</div>
                 </div>
             </div>
         `).join('');
-        
+
         document.getElementById('lista-predicciones').innerHTML = prediccionesHTML;
         
         const porcentajeElement = document.getElementById('porcentaje-victoria');
+        porcentajeElement.textContent = `${victoriasPredichasJugador} vs ${victoriasPredichasRival}`;
+        
         const mensajeElement = document.getElementById('mensaje-porcentaje');
-        
-        porcentajeElement.textContent = mensajeResultado;
-        porcentajeElement.style.fontSize = '2rem';
-        
+
+        porcentajeElement.style.fontSize = '2rem'; 
+        porcentajeElement.style.display = 'flex';
+        porcentajeElement.style.justifyContent = 'center';
+        porcentajeElement.style.alignItems = 'center';
+        porcentajeElement.style.width = '100%';
+        porcentajeElement.style.textAlign = 'center';
+        porcentajeElement.style.margin = '0';
+
         if (ganarasLaBatalla) {
             porcentajeElement.style.color = '#27ae60';
             mensajeElement.textContent = '¡Vas a ganar!';
@@ -2698,7 +2716,6 @@ async function eliminarZona(id) {
     cargarListaZonas();
 }
 
-
 let todosLosPokedex = []; 
 let entrenadorEditandoId = null;
 
@@ -2716,6 +2733,7 @@ async function abrirGestionRivales() {
         
         const todos = await resEnt.json();
         todosLosPokedex = await resPoke.json(); 
+        
         
         const misRivales = todos.filter(e => e.descripcion === 'Entrenador Personalizado');
 
@@ -2752,7 +2770,6 @@ async function abrirModalEditorCompleto() {
     entrenadorEditandoId = null; 
     document.getElementById('titulo-editor-completo').textContent = "Crear Nuevo Rival";
     
-    
     document.getElementById('edit-nombre').value = "";
     document.getElementById('edit-img').value = "";
     
@@ -2786,8 +2803,10 @@ function generarInputsEquipo(equipoExistente) {
     for (let i = 1; i <= 5; i++) {
         
         const poke = equipoExistente.find(p => p.posicion === i);
+        
         let valId = '';
         if (poke) {
+            
             valId = poke.pokedex_id || ''; 
         }
 
@@ -2820,6 +2839,7 @@ async function guardarEntrenadorCompleto() {
     
     if (!nombre) return alert("¡El nombre es obligatorio!");
 
+    
     const nuevoEquipo = [];
     let sumaNiveles = 0;
     let contadorPokemons = 0;
@@ -2832,12 +2852,14 @@ async function guardarEntrenadorCompleto() {
             const pokedexId = parseInt(inputId);
             let nivel = parseInt(inputLvl);
 
+            
             if (nivel > 30) {
                 alert(`⚠️ El nivel en la posición #${i} es ${nivel}. El máximo es 30.`);
                 return; 
             }
             if (nivel < 1 || isNaN(nivel)) nivel = 1;
 
+            
             const pokemonReal = todosLosPokedex.find(p => p.pokedex_id === pokedexId);
             
             if (!pokemonReal) {
@@ -2857,9 +2879,11 @@ async function guardarEntrenadorCompleto() {
     }
 
     if (nuevoEquipo.length === 0) return alert("Debes agregar al menos 1 Pokémon al equipo.");
-   
+
+    
     const nivelPromedio = Math.ceil(sumaNiveles / contadorPokemons);
 
+    
     const bodyEntrenador = JSON.stringify({ 
         nombre, 
         nivel: nivelPromedio, 
