@@ -205,7 +205,7 @@ CREATE TABLE entrenador_pokemons (
 
 CREATE INDEX idx_entrenador_pokemons_entrenador ON entrenador_pokemons(entrenador_id);
 
--
+
 CREATE TABLE batallas (
   id SERIAL PRIMARY KEY,
   jugador_id INT NOT NULL REFERENCES jugadores(id) ON DELETE CASCADE,

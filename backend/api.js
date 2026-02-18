@@ -244,6 +244,8 @@ app.delete('/api/jugador', async (req, res) => {
 
     await dbClient.query('TRUNCATE jugadores, habitats, zonas, granjas, jugador_frutas RESTART IDENTITY CASCADE');
 
+    await dbClient.query("DELETE FROM entrenadores WHERE descripcion = 'Entrenador Personalizado'");
+
     await dbClient.query(`
       INSERT INTO habitats (id, tipo, capacidad, imagen_url) VALUES
       (1, 'Pradera', 6, 'https://raw.githubusercontent.com/lucas-loiacono/imagenes/refs/heads/main/assets/habitats/habitatllanura.jpg'),
