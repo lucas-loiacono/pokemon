@@ -1,16 +1,16 @@
 -- ==================== ENTRENADORES (REQUIERE POKÉMON CARGADOS) ====================
 
 INSERT INTO entrenadores (id, nombre, nivel, descripcion, imagen_url) VALUES
-(1, 'Plata (Silver)', 1, 'Entrenador novato con Pokémon iniciales de Johto', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/e/ea/latest/20220427082421/VS_Plata_Masters_EX.png/90px-VS_Plata_Masters_EX.png'),
-(2, 'Matís (Hugh)', 2, 'Entrenador de nivel intermedio con evoluciones intermedias', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/9/97/latest/20251030021236/VS_Mat%C3%ADs_%28Academia%29_Masters.png/90px-VS_Mat%C3%ADs_%28Academia%29_Masters.png'),
-(3, 'Blasco (Wally)', 3, 'Entrenador experimentado con evoluciones finales de Hoenn', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/6/6b/latest/20200427102254/VS_Blasco_Masters.png/90px-VS_Blasco_Masters.png'),
-(4, 'Zarala (Acerola)', 4, 'Especialista en tipos Fantasma y Siniestro', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/e/ea/latest/20240626131714/VS_Zarala_%28Temporada_24%29_Masters.png/90px-VS_Zarala_%28Temporada_24%29_Masters.png'),
-(5, 'Ghetsis', 5, 'Líder de Team Plasma con Pokémon siniestros', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/4/46/latest/20210426074116/VS_Ghechis_Masters.png/90px-VS_Ghechis_Masters.png'),
-(6, 'Profesor Kukui', 6, 'Profesor de Alola con equipo balanceado', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/1/1b/latest/20200127091512/VS_Profesor_Kukui_Masters.png/90px-VS_Profesor_Kukui_Masters.png'),
-(7, 'Azul (Blue)', 7, 'Campeón de Kanto con equipo poderoso', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/a/a0/latest/20230824190732/VS_Azul_%28Neocampe%C3%B3n%29_Masters.png/90px-VS_Azul_%28Neocampe%C3%B3n%29_Masters.png'),
-(8, 'Lionel (Leon)', 8, 'Campeón de Galar con Pokémon legendarios', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/6/68/latest/20230727195038/VS_Lionel_%28Torre_Batalla%29_Masters.png/90px-VS_Lionel_%28Torre_Batalla%29_Masters.png'),
-(9, 'Rojo (Red)', 9, 'Campeón legendario con equipo icónico', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/a/a0/latest/20210914072530/VS_Rojo_Masters.png/90px-VS_Rojo_Masters.png'),
-(10, 'Cintia (Cynthia)', 10, 'Campeona de Sinnoh, la más poderosa', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/4/49/latest/20190812030416/VS_Cintia_Masters.png/90px-VS_Cintia_Masters.png')
+(1, 'Plata', 1, 'Entrenador novato con Pokémon iniciales de Johto', 'https://images.wikidexcdn.net/mwuploads/wikidex/8/8c/latest/20141118021036/Plata_en_HGSS.png'),
+(2, 'Matís', 2, 'Entrenador de nivel intermedio con evoluciones intermedias', 'https://images.wikidexcdn.net/mwuploads/wikidex/3/32/latest/20220526053319/Mat%C3%ADs.png'),
+(3, 'Blasco (Wally)', 3, 'Entrenador experimentado con evoluciones finales de Hoenn', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/b/b1/latest/20220326181141/Blasco_ROZA.png/250px-Blasco_ROZA.png'),
+(4, 'Zarala', 4, 'Especialista en tipos Fantasma y Siniestro', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/3/3f/latest/20181003024510/Zarala.png/250px-Zarala.png'),
+(5, 'Ghetsis', 5, 'Líder de Team Plasma con Pokémon siniestros', 'https://images.wikidexcdn.net/mwuploads/wikidex/4/43/latest/20120714034132/Ilustraci%C3%B3n_de_Ghechis_N2B2.png'),
+(6, 'Profesor Kukui', 6, 'Profesor de Alola con equipo balanceado', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/5/51/latest/20160602131830/Profesor_Kukui.png/230px-Profesor_Kukui.png'),
+(7, 'Azul', 7, 'Campeón de Kanto con equipo poderoso', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/2/24/latest/20151230152256/Azul_en_HGSS.png/180px-Azul_en_HGSS.png'),
+(8, 'Lionel', 8, 'Campeón de Galar con Pokémon legendarios', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/b/be/latest/20220314191026/Lionel.png/250px-Lionel.png'),
+(9, 'Rojo', 9, 'Campeón legendario con equipo icónico', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/7/72/latest/20230912031012/Rojo_RFVH_%28Ilustraci%C3%B3n%29.png/151px-Rojo_RFVH_%28Ilustraci%C3%B3n%29.png'),
+(10, 'Cintia', 10, 'Campeona de Sinnoh, la más poderosa', 'https://images.wikidexcdn.net/mwuploads/wikidex/thumb/f/f2/latest/20220426191412/Cintia.png/152px-Cintia.png')
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
   nivel = EXCLUDED.nivel,
