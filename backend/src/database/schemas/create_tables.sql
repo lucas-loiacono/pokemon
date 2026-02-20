@@ -184,16 +184,16 @@ CREATE TABLE jugador_frutas (
 
 -- ==================== ENTRENADORES Y COMBATE ====================
 
--- Tabla de Entrenadores (10 NIVELES)
+
 CREATE TABLE entrenadores (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
-  nivel INT NOT NULL CHECK (nivel >= 1 AND nivel <= 10),
+  nivel INT NOT NULL CHECK (nivel >= 1 AND nivel <= 100),
   descripcion TEXT,
   imagen_url TEXT
 );
 
--- Pokémon de los entrenadores (5 POKÉMON CADA UNO)
+
 CREATE TABLE entrenador_pokemons (
   id SERIAL PRIMARY KEY,
   entrenador_id INT NOT NULL REFERENCES entrenadores(id) ON DELETE CASCADE,
@@ -205,7 +205,7 @@ CREATE TABLE entrenador_pokemons (
 
 CREATE INDEX idx_entrenador_pokemons_entrenador ON entrenador_pokemons(entrenador_id);
 
--- Tabla de Batallas (REGISTRO DE COMBATES 1v1)
+
 CREATE TABLE batallas (
   id SERIAL PRIMARY KEY,
   jugador_id INT NOT NULL REFERENCES jugadores(id) ON DELETE CASCADE,

@@ -1,13 +1,6 @@
 const { Pool } = require('pg');
 const { verificarSubidaNivelPokemon, verificarSubidaNivelJugador } = require('./niveles');
 
-//const dbClient = new Pool({
-//  connectionString: 'postgresql://neondb_owner:npg_LXJPI0oZf5Qv@ep-solitary-river-ai21ihv6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
-//  ssl: {
-//    rejectUnauthorized: false
-//  }
-//});
-
 const dbClient = new Pool({
   user: 'postgres',
   host: 'localhost',
@@ -16,54 +9,59 @@ const dbClient = new Pool({
   port: 5432,
 });
 
+
+
 async function getJugadorId() {
   const result = await dbClient.query('SELECT id FROM jugadores ORDER BY id DESC LIMIT 1');
   return result.rows[0]?.id || null;
 }
 
+function calcularMultiplicador(tiposAtacante, tiposDefensor, efectividades) {
+  let sumaEfectividad = 0; 
+  for (const tipoAtacante of tiposAtacante) {
+    for (const tipoDefensor of tiposDefensor) {
+      const efectividad = efectividades.find(
+        e => e.tipo_atacante === tipoAtacante && e.tipo_defensor === tipoDefensor
+      );
+      if (efectividad) {
+        sumaEfectividad += parseFloat(efectividad.multiplicador);
+      } else {
+        sumaEfectividad += 1.0;
+      }
+    }
+  }
+  return sumaEfectividad || 1;
+}
+
 
 async function getAllEntrenadores() {
   const jugadorId = await getJugadorId();
-  
-  if (!jugadorId) {
-    return { error: 'Jugador not found' };
-  }
+  if (!jugadorId) return { error: 'Jugador not found' };
 
+ 
   const maxNivelDesbloqueado = await dbClient.query(`
     SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
     FROM batallas b
     INNER JOIN entrenadores e ON b.entrenador_id = e.id
-    WHERE b.jugador_id = $1 AND b.resultado = 'victoria'
+    WHERE b.jugador_id = $1 AND b.resultado = 'victoria' AND e.descripcion != 'Entrenador Personalizado'
   `, [jugadorId]);
 
   const nivelDesbloqueado = maxNivelDesbloqueado.rows[0].siguiente_nivel;
 
   const result = await dbClient.query(`
     SELECT 
-      e.id,
-      e.nombre,
-      e.nivel,
-      e.descripcion,
-      e.imagen_url,
+      e.id, e.nombre, e.nivel, e.descripcion, e.imagen_url,
       COUNT(ep.id) as total_pokemons,
       CASE 
+        WHEN e.descripcion = 'Entrenador Personalizado' THEN true
         WHEN e.nivel <= $2 THEN true
         ELSE false
       END as desbloqueado,
-      (
-        SELECT COUNT(*) 
-        FROM batallas b 
-        WHERE b.entrenador_id = e.id AND b.jugador_id = $1 AND b.resultado = 'victoria'
-      ) as victorias,
-      (
-        SELECT COUNT(*) 
-        FROM batallas b 
-        WHERE b.entrenador_id = e.id AND b.jugador_id = $1
-      ) as batallas_totales
+      (SELECT COUNT(*) FROM batallas b WHERE b.entrenador_id = e.id AND b.jugador_id = $1 AND b.resultado = 'victoria') as victorias
     FROM entrenadores e
     LEFT JOIN entrenador_pokemons ep ON e.id = ep.entrenador_id
     GROUP BY e.id
-    ORDER BY e.nivel, e.id
+    ORDER BY CASE WHEN e.descripcion = 'Entrenador Personalizado' THEN 1 ELSE 0 END, e.nivel, e.id
   `, [jugadorId, nivelDesbloqueado]);
 
   return result.rows;
@@ -71,48 +69,13 @@ async function getAllEntrenadores() {
 
 async function getOneEntrenador(id) {
   const jugadorId = await getJugadorId();
-  
-  if (!jugadorId) {
-    return { error: 'Jugador not found' };
-  }
+  if (!jugadorId) return { error: 'Jugador not found' };
 
-  const maxNivelDesbloqueado = await dbClient.query(`
-    SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
-    FROM batallas b
-    INNER JOIN entrenadores e ON b.entrenador_id = e.id
-    WHERE b.jugador_id = $1 AND b.resultado = 'victoria'
-  `, [jugadorId]);
-
-  const nivelDesbloqueado = maxNivelDesbloqueado.rows[0].siguiente_nivel;
-
-  const result = await dbClient.query(`
-    SELECT 
-      e.id,
-      e.nombre,
-      e.nivel,
-      e.descripcion,
-      e.imagen_url,
-      CASE 
-        WHEN e.nivel <= $2 THEN true
-        ELSE false
-      END as desbloqueado
-    FROM entrenadores e
-    WHERE e.id = $1
-  `, [id, nivelDesbloqueado]);
-
-  if (result.rowCount === 0) {
-    return null;
-  }
+  const result = await dbClient.query(`SELECT * FROM entrenadores WHERE id = $1`, [id]);
+  if (result.rowCount === 0) return null;
 
   const pokemons = await dbClient.query(`
-    SELECT 
-      ep.posicion,
-      p.id as pokemon_id,
-      p.pokedex_id,
-      p.nombre,
-      p.imagen_url,
-      ep.nivel,
-      ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
+    SELECT ep.posicion, p.id as pokemon_id, p.pokedex_id, p.nombre, p.imagen_url, ep.nivel, ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
     FROM entrenador_pokemons ep
     INNER JOIN pokemons p ON ep.pokemon_id = p.id
     INNER JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
@@ -122,319 +85,253 @@ async function getOneEntrenador(id) {
     ORDER BY ep.posicion
   `, [id]);
 
-  return {
-    ...result.rows[0],
-    pokemons: pokemons.rows
-  };
-}
-
-
-
-function calcularMultiplicador(tiposAtacante, tiposDefensor, efectividades) {
-  let sumaEfectividad = 0; 
-
-  for (const tipoAtacante of tiposAtacante) {
-    for (const tipoDefensor of tiposDefensor) {
-      const efectividad = efectividades.find(
-        e => e.tipo_atacante === tipoAtacante && e.tipo_defensor === tipoDefensor
-      );
-
-      if (efectividad) {
-        sumaEfectividad += parseFloat(efectividad.multiplicador);
-      } else {
-        sumaEfectividad += 1.0;
-      }
-    }
-  }
-
-  return sumaEfectividad;
+  return { ...result.rows[0], pokemons: pokemons.rows, desbloqueado: true };
 }
 
 async function iniciarCombate(entrenador_id) {
   const jugadorId = await getJugadorId();
+  if (!jugadorId) return { error: 'Jugador not found' };
+
   
-  if (!jugadorId) {
-    return { error: 'Jugador not found' };
+  const entrenadorCheck = await dbClient.query(`SELECT nivel, nombre, descripcion FROM entrenadores WHERE id = $1`, [entrenador_id]);
+  if (entrenadorCheck.rowCount === 0) return { error: 'Entrenador no encontrado' };
+  
+  const { nivel: nivelEntrenador, nombre: nombreEntrenador, descripcion } = entrenadorCheck.rows[0];
+
+  
+  if (descripcion !== 'Entrenador Personalizado') {
+      const maxNivel = await dbClient.query(`
+        SELECT COALESCE(MAX(e.nivel), 0) + 1 as sig 
+        FROM batallas b
+        JOIN entrenadores e ON b.entrenador_id = e.id
+        WHERE b.jugador_id = $1 AND b.resultado = 'victoria' AND e.descripcion != 'Entrenador Personalizado'
+      `, [jugadorId]);
+      
+      const nivelPermitido = maxNivel.rows[0].sig;
+      if (nivelEntrenador > nivelPermitido) {
+        return { error: 'Bloqueado', mensaje: `Debes derrotar al nivel ${nivelPermitido - 1} de la historia primero.` };
+      }
   }
 
-  const maxNivelDesbloqueado = await dbClient.query(`
-    SELECT COALESCE(MAX(e.nivel), 0) + 1 as siguiente_nivel
-    FROM batallas b
-    INNER JOIN entrenadores e ON b.entrenador_id = e.id
-    WHERE b.jugador_id = $1 AND b.resultado = 'victoria'
-  `, [jugadorId]);
-
-  const nivelDesbloqueado = maxNivelDesbloqueado.rows[0].siguiente_nivel;
-
-  const entrenadorCheck = await dbClient.query(`
-    SELECT nivel, nombre FROM entrenadores WHERE id = $1
-  `, [entrenador_id]);
-
-  if (entrenadorCheck.rowCount === 0) {
-    return { error: 'Entrenador no encontrado' };
-  }
-
-  const { nivel: nivelEntrenador, nombre: nombreEntrenador } = entrenadorCheck.rows[0];
-
-  if (nivelEntrenador > nivelDesbloqueado) {
-    return { 
-      error: 'Entrenador no desbloqueado',
-      mensaje: `Debes derrotar al entrenador nivel ${nivelDesbloqueado - 1} primero`
-    };
-  }
-
+  
   const equipoJugador = await dbClient.query(`
-    SELECT 
-      ec.posicion,
-      jp.id as jugador_pokemon_id,
-      jp.nivel,
-      p.id as pokemon_id,
-      p.nombre as pokemon_nombre,
-      jp.apodo,
-      ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
+    SELECT ec.posicion, jp.id as jugador_pokemon_id, jp.nivel, p.nombre as pokemon_nombre, jp.apodo, ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
     FROM equipo_combate ec
-    INNER JOIN jugador_pokemons jp ON ec.jugador_pokemon_id = jp.id
-    INNER JOIN pokemons p ON jp.pokemon_id = p.id
-    INNER JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
-    INNER JOIN tipos t ON pt.tipo_id = t.id
-    WHERE ec.jugador_id = $1
-    GROUP BY ec.posicion, jp.id, jp.nivel, p.id, p.nombre, jp.apodo
-    ORDER BY ec.posicion
+    JOIN jugador_pokemons jp ON ec.jugador_pokemon_id = jp.id
+    JOIN pokemons p ON jp.pokemon_id = p.id
+    JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
+    JOIN tipos t ON pt.tipo_id = t.id
+    WHERE ec.jugador_id = $1 GROUP BY ec.posicion, jp.id, jp.nivel, p.id, p.nombre, jp.apodo ORDER BY ec.posicion
   `, [jugadorId]);
 
-  if (equipoJugador.rowCount === 0) {
-    return { 
-      error: 'No hay Pokémon en el equipo',
-      mensaje: 'Debes tener al menos 1 Pokémon en el equipo para combatir'
-    };
-  }
+  if (equipoJugador.rowCount === 0) return { error: 'Sin equipo', mensaje: 'Equipa al menos 1 Pokémon' };
 
   const equipoEntrenador = await dbClient.query(`
-    SELECT 
-      ep.posicion,
-      ep.nivel,
-      p.id as pokemon_id,
-      p.nombre as pokemon_nombre,
-      ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
+    SELECT ep.posicion, ep.nivel, p.nombre as pokemon_nombre, ARRAY_AGG(t.nombre ORDER BY pt.orden) as tipos
     FROM entrenador_pokemons ep
-    INNER JOIN pokemons p ON ep.pokemon_id = p.id
-    INNER JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
-    INNER JOIN tipos t ON pt.tipo_id = t.id
-    WHERE ep.entrenador_id = $1
-    GROUP BY ep.posicion, ep.nivel, p.id, p.nombre
-    ORDER BY ep.posicion
+    JOIN pokemons p ON ep.pokemon_id = p.id
+    JOIN pokemon_tipos pt ON p.id = pt.pokemon_id
+    JOIN tipos t ON pt.tipo_id = t.id
+    WHERE ep.entrenador_id = $1 GROUP BY ep.posicion, ep.nivel, p.id, p.nombre ORDER BY ep.posicion
   `, [entrenador_id]);
 
-  if (equipoEntrenador.rowCount === 0) {
-    return { error: 'Entrenador sin Pokémon' };
-  }
+  if (equipoEntrenador.rowCount === 0) return { error: 'Rival sin Pokémon' };
 
-  const efectividades = await dbClient.query(`
-    SELECT tipo_atacante, tipo_defensor, multiplicador
-    FROM tipo_efectividad
-  `);
-
-  const resultadosCombates = [];
+  
+  const efectividades = await dbClient.query('SELECT * FROM tipo_efectividad');
   let victoriasJugador = 0;
   let victoriasEnemigo = 0;
+  const resultadosCombates = [];
 
-  const totalCombates = Math.min(
-    equipoJugador.rowCount, 
-    equipoEntrenador.rowCount, 
-    5
-  );
-
-  for (let i = 0; i < totalCombates; i++) {
-    const pokemonJugador = equipoJugador.rows[i];
-    const pokemonEnemigo = equipoEntrenador.rows[i];
-
-    const multiplicadorJugador = calcularMultiplicador(
-      pokemonJugador.tipos,
-      pokemonEnemigo.tipos,
-      efectividades.rows
-    );
-
-    const multiplicadorEnemigo = calcularMultiplicador(
-      pokemonEnemigo.tipos,
-      pokemonJugador.tipos,
-      efectividades.rows
-    );
-
-    const poderJugador = pokemonJugador.nivel * multiplicadorJugador;
-    const poderEnemigo = pokemonEnemigo.nivel * multiplicadorEnemigo;
-
-    let ganador;
-    if (poderJugador > poderEnemigo) {
-      ganador = 'jugador';
-      victoriasJugador++;
-    } else {
-      ganador = 'enemigo';
-      victoriasEnemigo++;
-    }
-    
-    console.log(`🥊 Combate ${i+1}:`, {
-      jugador: `${pokemonJugador.apodo || pokemonJugador.pokemon_nombre} (${pokemonJugador.tipos.join('/')}) Lvl ${pokemonJugador.nivel}`,
-      enemigo: `${pokemonEnemigo.pokemon_nombre} (${pokemonEnemigo.tipos.join('/')}) Lvl ${pokemonEnemigo.nivel}`,
-      multiplicadorJugador: multiplicadorJugador.toFixed(2),
-      multiplicadorEnemigo: multiplicadorEnemigo.toFixed(2),
-      poderJugador: poderJugador.toFixed(2),
-      poderEnemigo: poderEnemigo.toFixed(2),
-      ganador: ganador
-    });
-
-    resultadosCombates.push({
-      posicion: i + 1,
-      ganador: ganador,
-      pokemon_jugador: pokemonJugador.apodo || pokemonJugador.pokemon_nombre,
-      pokemon_enemigo: pokemonEnemigo.pokemon_nombre,
-      nivel_jugador: pokemonJugador.nivel,
-      nivel_enemigo: pokemonEnemigo.nivel,
-      tipos_jugador: pokemonJugador.tipos,
-      tipos_enemigo: pokemonEnemigo.tipos,
-      poder_jugador: parseFloat(poderJugador.toFixed(2)),
-      poder_enemigo: parseFloat(poderEnemigo.toFixed(2)),
-      multiplicador_jugador: parseFloat(multiplicadorJugador.toFixed(2)),
-      multiplicador_enemigo: parseFloat(multiplicadorEnemigo.toFixed(2))
-    });
-  }
-
-  const resultado = victoriasJugador >= 3 ? 'victoria' : 'derrota';
   
-  console.log(`\n🏆 RESULTADO FINAL:`);
-  console.log(`   Victorias Jugador: ${victoriasJugador}`);
-  console.log(`   Victorias Enemigo: ${victoriasEnemigo}`);
-  console.log(`   Resultado: ${resultado.toUpperCase()}\n`);
+  for (let i = 1; i <= 5; i++) {
+    const pJug = equipoJugador.rows.find(p => p.posicion === i);
+    const pRiv = equipoEntrenador.rows.find(p => p.posicion === i);
 
-  let xpJugador;
-  let xpPokemon;
+    let ganadorRound = null;
+    let detalle = {};
 
-  if (resultado === 'victoria') {
-    xpJugador = 100;  
-    xpPokemon = 30;   
-  } else {
-    xpJugador = 10;   
-    xpPokemon = 10;   
+    
+    if (!pJug && !pRiv) {
+        resultadosCombates.push({ ganador: null, posicion: i });
+        continue;
+    }
+
+    
+    if (pJug && !pRiv) {
+        victoriasJugador++;
+        resultadosCombates.push({ ganador: 'jugador', posicion: i, ...pJug });
+        continue;
+    }
+
+    
+    if (!pJug && pRiv) {
+        victoriasEnemigo++;
+        resultadosCombates.push({ ganador: 'enemigo', posicion: i, ...pRiv });
+        continue;
+    }
+
+    
+    const multJug = calcularMultiplicador(pJug.tipos, pRiv.tipos, efectividades.rows);
+    const multRiv = calcularMultiplicador(pRiv.tipos, pJug.tipos, efectividades.rows);
+
+    const poderJug = pJug.nivel * multJug;
+    const poderRiv = pRiv.nivel * multRiv;
+
+    if (poderJug >= poderRiv) { 
+        ganadorRound = 'jugador';
+        victoriasJugador++;
+    } else {
+        ganadorRound = 'enemigo';
+        victoriasEnemigo++;
+    }
+
+    resultadosCombates.push({ 
+        ganador: ganadorRound, 
+        posicion: i,
+        pokemon_jugador: pJug.apodo || pJug.pokemon_nombre,
+        pokemon_enemigo: pRiv.pokemon_nombre,
+        poder_jugador: poderJug.toFixed(2),
+        poder_enemigo: poderRiv.toFixed(2)
+    });
   }
 
+  
+  const ganoCombate = victoriasJugador > victoriasEnemigo;
+  const resultadoTexto = ganoCombate ? 'victoria' : 'derrota';
+
+  
+  let xpFinalJugador;
+  let xpFinalPokemon;
+
+  if (ganoCombate) {
+    xpFinalJugador = 100;
+    xpFinalPokemon = 30;
+  } else {
+    xpFinalJugador = 10;
+    xpFinalPokemon = 10;
+  }
+  
+  let pokemonsActualizados = [];
+  
+  
+  await dbClient.query('UPDATE jugadores SET xp = xp + $1 WHERE id = $2', [xpFinalJugador, jugadorId]);
+  
+  
+  for (const poke of equipoJugador.rows) {
+      await dbClient.query('UPDATE jugador_pokemons SET xp = xp + $1 WHERE id = $2', [xpFinalPokemon, poke.jugador_pokemon_id]);
+      
+      const resNivel = await verificarSubidaNivelPokemon(poke.jugador_pokemon_id);
+      if (resNivel.subio_nivel) {
+          pokemonsActualizados.push({
+              pokemon: poke.apodo || poke.pokemon_nombre,
+              subio_nivel: true,
+              niveles_subidos: resNivel.niveles_subidos,
+              xp_ganada: xpFinalPokemon
+          });
+      }
+  }
+
+  
   const batalla = await dbClient.query(`
     INSERT INTO batallas (
-      jugador_id,
-      entrenador_id,
-      resultado,
-      combate_1_ganador,
-      combate_2_ganador,
-      combate_3_ganador,
-      combate_4_ganador,
-      combate_5_ganador,
-      victorias_jugador,
-      victorias_enemigo,
-      xp_ganada
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-    RETURNING *
+      jugador_id, entrenador_id, resultado, 
+      combate_1_ganador, combate_2_ganador, combate_3_ganador, combate_4_ganador, combate_5_ganador,
+      victorias_jugador, victorias_enemigo, xp_ganada
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id
   `, [
-    jugadorId,
-    entrenador_id,
-    resultado,
-    resultadosCombates[0]?.ganador || null,
-    resultadosCombates[1]?.ganador || null,
-    resultadosCombates[2]?.ganador || null,
-    resultadosCombates[3]?.ganador || null,
-    resultadosCombates[4]?.ganador || null,
-    victoriasJugador,
-    victoriasEnemigo,
-    xpJugador
+    jugadorId, entrenador_id, resultadoTexto,
+    resultadosCombates.find(r => r.posicion === 1)?.ganador || null,
+    resultadosCombates.find(r => r.posicion === 2)?.ganador || null,
+    resultadosCombates.find(r => r.posicion === 3)?.ganador || null,
+    resultadosCombates.find(r => r.posicion === 4)?.ganador || null,
+    resultadosCombates.find(r => r.posicion === 5)?.ganador || null,
+    victoriasJugador, victoriasEnemigo, xpFinalJugador
   ]);
-
-  await dbClient.query(`
-    UPDATE jugadores
-    SET xp = xp + $1
-    WHERE id = $2
-  `, [xpJugador, jugadorId]);
-
-  const pokemonsActualizados = [];
-  
-  for (let i = 0; i < equipoJugador.rowCount; i++) {
-    const pokemon = equipoJugador.rows[i];
-    
-    await dbClient.query(`
-      UPDATE jugador_pokemons
-      SET xp = xp + $1
-      WHERE id = $2
-    `, [xpPokemon, pokemon.jugador_pokemon_id]);
-
-    const nivelResultado = await verificarSubidaNivelPokemon(pokemon.jugador_pokemon_id);
-    
-    pokemonsActualizados.push({
-      pokemon: pokemon.apodo || pokemon.pokemon_nombre,
-      xp_ganada: xpPokemon,
-      subio_nivel: nivelResultado.subio_nivel || false,
-      niveles_subidos: nivelResultado.niveles_subidos || []
-    });
-  }
-
-  for (let i = 0; i < resultadosCombates.length; i++) {
-    if (resultadosCombates[i].ganador === 'jugador') {
-      const pokemonGanador = equipoJugador.rows[i];
-      
-      await dbClient.query(`
-        UPDATE jugador_pokemons
-        SET combates_ganados = combates_ganados + 1
-        WHERE id = $1
-      `, [pokemonGanador.jugador_pokemon_id]);
-    }
-  }
 
   const jugadorNivel = await verificarSubidaNivelJugador();
 
   return {
     batalla_id: batalla.rows[0].id,
-    resultado: resultado,
-    mensaje: resultado === 'victoria' 
-      ? `¡Derrotaste a ${nombreEntrenador}!`
-      : `${nombreEntrenador} te ha derrotado`,
+    resultado: resultadoTexto,
+    mensaje: ganoCombate ? `¡Derrotaste a ${nombreEntrenador}!` : `${nombreEntrenador} te ha derrotado.`,
     entrenador: nombreEntrenador,
     combates: resultadosCombates,
     victorias_jugador: victoriasJugador,
     victorias_enemigo: victoriasEnemigo,
-    xp_jugador: xpJugador,
-    xp_pokemon: xpPokemon,
+    xp_jugador: xpFinalJugador,
+    xp_pokemon: xpFinalPokemon,
     total_pokemons: equipoJugador.rowCount,
     pokemons_actualizados: pokemonsActualizados,
-    jugador_subio_nivel: jugadorNivel.subio_nivel || false,
-    jugador_niveles_subidos: jugadorNivel.niveles_subidos || []
+    jugador_subio_nivel: jugadorNivel.subio_nivel,
+    jugador_niveles_subidos: jugadorNivel.niveles_subidos
   };
 }
 
-
 async function getHistorialBatallas() {
   const jugadorId = await getJugadorId();
-  
-  if (!jugadorId) {
-    return { error: 'Jugador not found' };
-  }
-
+  if (!jugadorId) return { error: 'Jugador not found' };
   const result = await dbClient.query(`
-    SELECT 
-      b.id,
-      b.resultado,
-      b.victorias_jugador,
-      b.victorias_enemigo,
-      b.xp_ganada,
-      e.nombre as entrenador_nombre,
-      e.nivel as entrenador_nivel,
-      e.imagen_url as entrenador_imagen
-    FROM batallas b
-    INNER JOIN entrenadores e ON b.entrenador_id = e.id
-    WHERE b.jugador_id = $1
-    ORDER BY b.id DESC
+    SELECT b.*, e.nombre as entrenador_nombre FROM batallas b
+    JOIN entrenadores e ON b.entrenador_id = e.id
+    WHERE b.jugador_id = $1 ORDER BY b.id DESC
   `, [jugadorId]);
-
   return result.rows;
+}
+
+async function createEntrenador(nombre, nivel, imagen_url) {
+  try {
+    const res = await dbClient.query(
+      'INSERT INTO entrenadores (nombre, nivel, descripcion, imagen_url) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nombre, nivel, 'Entrenador Personalizado', imagen_url]
+    );
+    return res.rows[0];
+  } catch (e) { return { error: e.message }; }
+}
+
+async function updateEntrenador(id, nombre, imagen_url, nivel) {
+  try {
+    const res = await dbClient.query(
+      'UPDATE entrenadores SET nombre = $1, imagen_url = $2, nivel = $3 WHERE id = $4 RETURNING *',
+      [nombre, imagen_url, nivel, id]
+    );
+    return res.rows[0];
+  } catch (e) { return { error: e.message }; }
+}
+
+async function deleteEntrenador(id) {
+  try {
+    await dbClient.query('DELETE FROM entrenadores WHERE id = $1', [id]);
+    return { message: 'Eliminado' };
+  } catch (e) { return { error: e.message }; }
+}
+
+async function setEntrenadorTeam(entrenadorId, pokemons) {
+  try {
+    await dbClient.query('BEGIN');
+    await dbClient.query('DELETE FROM entrenador_pokemons WHERE entrenador_id = $1', [entrenadorId]);
+    for (const p of pokemons) {
+      await dbClient.query(
+        'INSERT INTO entrenador_pokemons (entrenador_id, pokemon_id, nivel, posicion) VALUES ($1, $2, $3, $4)',
+        [entrenadorId, p.pokemon_id, p.nivel, p.posicion]
+      );
+    }
+    await dbClient.query('COMMIT');
+    return { message: 'Equipo actualizado' };
+  } catch (e) {
+    await dbClient.query('ROLLBACK');
+    return { error: e.message };
+  }
 }
 
 module.exports = {
   getAllEntrenadores,
   getOneEntrenador,
   iniciarCombate,
-  getHistorialBatallas
+  getHistorialBatallas,
+  createEntrenador,   
+  updateEntrenador,   
+  deleteEntrenador,  
+  setEntrenadorTeam   
 };
+
